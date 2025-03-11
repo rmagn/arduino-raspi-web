@@ -12,22 +12,26 @@
 
 {% block content %}
 <!-- Toast pour le statut de l'Arduino -->
-<div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+<div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3"
+    role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
         <div class="toast-body">
             <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
     </div>
 </div>
 
 <!-- Toast pour les erreurs -->
-<div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+<div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3"
+    role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
         <div class="toast-body">
             <span id="errorMessageText"></span>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
     </div>
 </div>
 
@@ -71,28 +75,28 @@
         <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
         <button id="ambianceTemp" type="button" class="btn btn-info">...°C</button>
         <button id="deltaTemp" type="button" class="btn btn-info">...°C</button>
-    </div>        
+    </div>
 
     <div class="col-md-4">
         <p>
-      <label for="spinner">Consigne Ambiance:</label>
-      <input id="input_ambiance" value="init..." type="number" min="10" max="26" step="0.5">
-    </p>
+            <label for="spinner">Consigne Ambiance:</label>
+            <input id="input_ambiance" value="init..." type="number" min="10" max="26" step="0.5">
+        </p>
         <!--<p> spinner ambiance : <span id="inputspinner">...</span></p>-->
-        
+
         <p>
-      <label for="spinner">Consigne Plancher:</label>
-      <input id="input_plancher" value="init..." type="number" min="20" max="32" step="0.5">
-    </p>
-      </div>
+            <label for="spinner">Consigne Plancher:</label>
+            <input id="input_plancher" value="init..." type="number" min="20" max="32" step="0.5">
+        </p>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 
-     // Définition des gauges avec un label personnalisé
-     function createGauge(id, title, min, max) {
+    // Définition des gauges avec un label personnalisé
+    function createGauge(id, title, min, max) {
         return new JustGage({
             id: id,
             value: min,
@@ -133,7 +137,7 @@
                             gaugeAmbiance.refresh(data.temp_ambiance);
 
                         }
-                        
+
                         hideError();
                     } catch (e) {
                         console.error("Erreur de parsing JSON:", e);
@@ -172,7 +176,7 @@
             errorToast.hide();
         }
     }
-    
+
     document.addEventListener("DOMContentLoaded", function () {
         GetArduinoInputs();
 
@@ -192,7 +196,7 @@
             .catch(error => {
                 showError("Erreur de connexion à l'Arduino.");
             });
-    });  
-    
+    });
+
 </script>
 {% endblock %}

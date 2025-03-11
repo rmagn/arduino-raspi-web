@@ -2,21 +2,21 @@ from flask import Flask, request, jsonify, send_from_directory, render_template
 import sqlite3
 import os
 import sys
-print("coucou !")
-print("caché !")
-# 🔹 Ajouter un message de debug pour voir la valeur de DEV_MODE
-print(f"DEBUG: Valeur brute de DEV_MODE = {os.getenv('DEV_MODE')}")
+print("coucou and Welcom !")
 
-# 🔹 Forcer Flask à récupérer la vraie valeur de l'environnement global
-if "DEV_MODE" in os.environ:
-    DEV_MODE = int(os.environ["DEV_MODE"])
-else:
-    DEV_MODE = 0  # Valeur par défaut
-
-print(f"DEBUG: DEV_MODE utilisé par Flask = {DEV_MODE}")
 import datetime
 import requests
 
+# 🔹 Détermine le mode (dev ou prod)
+ENV_MODE = os.getenv("ENV_MODE", "DEV")
+
+# 🔹 Configuration conditionnelle des chemins
+if ENV_MODE == "PROD":
+    DATABASE = '/app/data/temperature_logs.db'
+else:
+    DATABASE = './data/DEV_temperature_logs.db'  # Dev local
+
+print(f"Mode : {ENV_MODE}, Base SQLite : {DATABASE}")
 
 # 📂 Définition des chemins
 BASE_DIR = "/app"
@@ -25,16 +25,15 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 
-DATABASE = os.path.join('data', 'temperature_logs.db')
 
 ARDUINO_IP = "http://192.168.1.111:7777/ajax_inputs"
 
 # 📌 Vérification de la connectivité à l'arduino
 @app.route('/arduino_status', methods=['GET'])
 def check_arduino():
-    print(f"DEBUG: DEV_MODE = {DEV_MODE}")  # Affiche DEV_MODE dans les logs
+    print(f"DEBUG: DEV_MODE = {ENV_MODE}")  # Affiche DEV_MODE dans les logs
     
-    if DEV_MODE == 1:  # Vérification correcte de DEV_MODE
+    if ENV_MODE == "DEV":  # Vérification correcte de DEV_MODE
         return jsonify({"status": "OK", "message": "Simulation Arduino connecté"}), 200
     
     try:

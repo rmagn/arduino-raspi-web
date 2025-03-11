@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data  # Volume externe pour SQLite
+    environment:
+      - ENV_MODE=DEV
+    restart: unless-stopped
