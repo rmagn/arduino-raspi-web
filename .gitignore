@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# SQLite database
+data/*.db
+
+# Environnement variables
+.env
+
+# Logs et temporaires
+logs/
+*.log
+
+# Docker
+*.dockerignore
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
