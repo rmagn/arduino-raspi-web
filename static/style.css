@@ -1,0 +1,46 @@
+#controlSchema {
+    width:800px;
+    height:600px;
+    margin:10px;
+
+  
+}
+
+#spinnerCirculateur{
+    position: absolute;
+    top: 297px; 
+    left: 181px;
+}
+
+#btnCirculateur {
+    position: absolute;
+    top: 297px;
+    left: 50px;
+}
+
+#departTemp {
+    position: absolute;
+    top: 383px;
+    left: 158px;
+}
+#retourTemp {
+    position: absolute;
+    top: 163px;
+    left: 370px;
+}
+#alimTemp {
+    position: absolute;
+    top: 73px;
+    left: 158px;
+}
+#ambianceTemp {
+    position: absolute;
+    top: 79px;
+    left: 370px;
+}
+
+#deltaTemp {
+    position: absolute;
+    top: 279px;
+    left: 370px;
+}

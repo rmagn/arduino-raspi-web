@@ -1,0 +1,198 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block head %}
+<!-- JustGage et Raphael (dépendance nécessaire) -->
+<script src="https://cdn.jsdelivr.net/npm/raphael/raphael.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/justgage.js"></script>
+
+
+{% endblock %}
+
+{% block content %}
+<!-- Toast pour le statut de l'Arduino -->
+<div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Toast pour les erreurs -->
+<div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            <span id="errorMessageText"></span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
+
+<div class="row text-center">
+    <div class="col-md-3">
+        <h5>Départ plancher</h5>
+        <div id="gaugePlancherDepart" class="gauge-container"></div>
+    </div>
+    <div class="col-md-3">
+        <h5>Retour plancher</h5>
+        <div id="gaugePlancherRetour" class="gauge-container"></div>
+    </div>
+    <div class="col-md-3">
+        <h5>Alimentation plancher</h5>
+        <div id="gaugeDepartAlim" class="gauge-container"></div>
+    </div>
+    <div class="col-md-3">
+        <h5>Ambiance</h5>
+        <div id="gaugeAmbiance" class="gauge-container"></div>
+    </div>
+</div>
+
+<style>
+    .gauge-container {
+        width: 150px;
+        height: 120px;
+        margin: auto;
+    }
+</style>
+
+
+<div id="dashboard">
+    <div class="col-md-8">
+        <div id="controlSchema">
+            <img src="{{ url_for('static', filename='schema.png') }}" />
+        </div>
+        <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
+        <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
+        <button id="departTemp" class="btn btn-danger">...°C</button>
+        <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
+        <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
+        <button id="ambianceTemp" type="button" class="btn btn-info">...°C</button>
+        <button id="deltaTemp" type="button" class="btn btn-info">...°C</button>
+    </div>        
+
+    <div class="col-md-4">
+        <p>
+      <label for="spinner">Consigne Ambiance:</label>
+      <input id="input_ambiance" value="init..." type="number" min="10" max="26" step="0.5">
+    </p>
+        <!--<p> spinner ambiance : <span id="inputspinner">...</span></p>-->
+        
+        <p>
+      <label for="spinner">Consigne Plancher:</label>
+      <input id="input_plancher" value="init..." type="number" min="20" max="32" step="0.5">
+    </p>
+      </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+     // Définition des gauges avec un label personnalisé
+     function createGauge(id, title, min, max) {
+        return new JustGage({
+            id: id,
+            value: min,
+            min: min,
+            max: max,
+            title: title,
+            label: "°C",
+            decimals: 1
+        });
+    }
+
+    // Création des gauges
+    let gaugePlancherDepart = createGauge("gaugePlancherDepart", "Départ plancher", 8, 50);
+    let gaugePlancherRetour = createGauge("gaugePlancherRetour", "Retour plancher", 8, 50);
+    let gaugeDepartAlim = createGauge("gaugeDepartAlim", "Alimentation plancher", 7, 70);
+    let gaugeAmbiance = createGauge("gaugeAmbiance", "Ambiance", 7, 40);
+
+
+    function GetArduinoInputs() {
+        let nocache = "&nocache=" + Math.random() * 1000000;
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    try {
+                        let data = JSON.parse(this.responseText);
+
+                        if (data.temp_plancher_depart !== undefined) {
+                            document.getElementById("departTemp").innerHTML = data.temp_plancher_depart + " °C";
+                            document.getElementById("retourTemp").innerHTML = data.temp_plancher_retour + " °C";
+                            document.getElementById("alimTemp").innerHTML = data.temp_depart_alim + " °C";
+                            document.getElementById("ambianceTemp").innerHTML = data.temp_ambiance + " °C";
+                            document.getElementById("deltaTemp").innerHTML = data.deltaT + " °C";
+
+                            gaugePlancherDepart.refresh(data.temp_plancher_depart);
+                            gaugePlancherRetour.refresh(data.temp_plancher_retour);
+                            gaugeDepartAlim.refresh(data.temp_depart_alim);
+                            gaugeAmbiance.refresh(data.temp_ambiance);
+
+                        }
+                        
+                        hideError();
+                    } catch (e) {
+                        console.error("Erreur de parsing JSON:", e);
+                        showError("Données invalides reçues de l'Arduino.");
+                    }
+                } else {
+                    showError("L'Arduino ne répond pas. Vérifiez la connexion !");
+                }
+            }
+        };
+
+        request.onerror = function () {
+            showError("Erreur réseau. Impossible de contacter l'Arduino.");
+        };
+
+        request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
+        request.send();
+        setTimeout(GetArduinoInputs, 5000);
+    }
+
+    function showError(message) {
+        let errorToastEl = document.getElementById("errorToast");
+        let errorMessageText = document.getElementById("errorMessageText");
+
+        if (errorToastEl && errorMessageText) {
+            errorMessageText.textContent = message;
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.show();
+        }
+    }
+
+    function hideError() {
+        let errorToastEl = document.getElementById("errorToast");
+        if (errorToastEl) {
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.hide();
+        }
+    }
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        GetArduinoInputs();
+
+        var arduinoToastEl = document.getElementById("arduinoToast");
+        var arduinoToast = new bootstrap.Toast(arduinoToastEl, { delay: 5000 });
+
+        fetch("/arduino_status")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "OK") {
+                    document.getElementById("arduinoStatusText").textContent = data.message;
+                    arduinoToast.show();
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                showError("Erreur de connexion à l'Arduino.");
+            });
+    });  
+    
+</script>
+{% endblock %}

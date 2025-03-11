@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Logs des Températures{% endblock %}
+
+{% block head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> 
+<script src="https://hammerjs.github.io/dist/hammer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+
+<!-- jQuery pour AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>    
+    canvas {
+        max-width: 100%;
+    }
+    #logChart {
+        max-height: 500px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">📊 Logs des Températures</h1>
+
+    <!-- Sélecteur de plage de temps -->
+    <div class="text-center my-3">
+        <label for="timeFilter">Filtrer par :</label>
+        <select id="timeFilter" class="form-select d-inline-block w-auto">
+            <option value="3h" selected>Dernières 3h</option>
+            <option value="24h">Dernières 24h</option>
+            <option value="7d">Derniers 7 jours</option>
+            <option value="30d">Derniers 30 jours</option>
+        </select>
+    </div>
+
+    <!-- Graphique -->
+    <canvas id="logChart"></canvas>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        let ctx = document.getElementById("logChart").getContext("2d");
+        let logChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    { label: "Plancher Départ", data: [], borderColor: "red", pointStyle: false, fill: false, tension: 0.4 },
+                    { label: "Plancher Retour", data: [], borderColor: "blue", pointStyle: false, fill: false, tension: 0.4 },
+                    { label: "Départ Alim", data: [], borderColor: "green", pointStyle: false, fill: false, tension: 0.4 },
+                    { label: "Ambiance", data: [], borderColor: "orange", pointStyle: false, fill: false, tension: 0.4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: "time",
+                        time: { 
+                            unit: "hour",
+                            tooltipFormat: "dd/MM/yyyy HH:mm", // ✅ Format 24h français
+                            displayFormats: {
+                                minute: "HH:mm",
+                                hour: "HH:mm",
+                                day: "dd/MM",
+                                month: "MM/yyyy"
+                            }
+                        },                                                    
+                    },
+                    y: { beginAtZero: false }
+                },
+                plugins: {
+                    zoom: {
+                        pan: {
+                            enabled: true,   // ✅ Active le déplacement du graphe
+                            mode: 'x',       // ✅ Déplacement horizontal uniquement
+                            //modifierKey: "ctrl", // 🔹 Ajoute un modificateur (ex : maintenir CTRL pour déplacer)
+                            speed: 0.5,      // 🔹 Rend le déplacement plus fluide
+                            threshold: 10    // 🔹 Évite les déplacements trop brusques
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true, 
+                                speed: 0.1
+                            },
+                            pinch: {
+                                enabled: true 
+                            },
+                            mode: "x",
+                        }
+                    }
+                }
+            }
+        });
+
+        $("#logChart").after('<p id="loading" class="text-center">📡 Chargement des données...</p>');
+
+        function fetchLogs(period = "3h") {
+            $.getJSON(`/api/logs?period=${period}`, function (data) {
+                $("#loading").remove();
+                let labels = [], tempPlancherDepart = [], tempPlancherRetour = [], tempDepartAlim = [], tempAmbiance = [];
+
+                data.forEach(log => {
+                    let dateObj = new Date(log.timestamp);
+                    labels.push(dateObj);
+                    tempPlancherDepart.push(log.temp_plancher_depart);
+                    tempPlancherRetour.push(log.temp_plancher_retour);
+                    tempDepartAlim.push(log.temp_depart_alim);
+                    tempAmbiance.push(log.temp_ambiance);
+                });
+
+                logChart.data.labels = labels;
+                logChart.data.datasets[0].data = tempPlancherDepart;
+                logChart.data.datasets[1].data = tempPlancherRetour;
+                logChart.data.datasets[2].data = tempDepartAlim;
+                logChart.data.datasets[3].data = tempAmbiance;
+                logChart.update();
+            }).fail(function () {
+                $("#loading").remove();
+                alert("❌ Erreur : impossible de récupérer les logs.");
+            });
+
+        }
+
+
+        $("#timeFilter").change(function () {
+            fetchLogs($(this).val());
+        });
+
+        fetchLogs();  // Chargement initial
+    });
+</script>
+{% endblock %}
