@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, send_from_directory, render_template
 import sqlite3
 import os
 import sys
+print("🚀 Flask Application Running on Docker!")
+
 print("coucou and Welcom !")
 
 import datetime
