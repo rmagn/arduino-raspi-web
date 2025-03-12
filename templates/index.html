@@ -63,33 +63,43 @@
 </style>
 
 
-<div id="dashboard">
-    <div class="col-md-8">
-        <div id="controlSchema">
-            <img src="{{ url_for('static', filename='schema.png') }}" />
+<div id="dashboard" class="mt-4">
+    <div class="row align-items-center"> <!-- Centre verticalement -->
+        <!-- Colonne avec le schéma -->
+        <div id="Col_Schema" class="col-xl-8">
+            <div id="controlSchema">
+                <img src="{{ url_for('static', filename='schema.png') }}" />
+                <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
+                <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
+                <button id="departTemp" class="btn btn-danger">...°C</button>
+                <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
+                <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
+                <button id="ambianceTemp" type="button" class="btn btn-info" style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+                <button id="deltaTemp" type="button" class="btn btn-info" style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+            </div>
+
         </div>
-        <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
-        <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
-        <button id="departTemp" class="btn btn-danger">...°C</button>
-        <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
-        <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
-        <button id="ambianceTemp" type="button" class="btn btn-info">...°C</button>
-        <button id="deltaTemp" type="button" class="btn btn-info">...°C</button>
-    </div>
 
-    <div class="col-md-4">
-        <p>
-            <label for="spinner">Consigne Ambiance:</label>
-            <input id="input_ambiance" value="init..." type="number" min="10" max="26" step="0.5">
-        </p>
-        <!--<p> spinner ambiance : <span id="inputspinner">...</span></p>-->
+        <!-- Colonne avec les consignes, alignée à droite et centrée verticalement -->
+        <div id="Col_Consignes" class="col-xl-4 d-flex flex-column align-items-end justify-content-center">
 
-        <p>
-            <label for="spinner">Consigne Plancher:</label>
-            <input id="input_plancher" value="init..." type="number" min="20" max="32" step="0.5">
-        </p>
+            <div class="mb-3 w-100">
+                <label for="input_ambiance" class="form-label">Consigne Ambiance:</label>
+                <input id="input_ambiance" class="form-control text-end" type="number" min="10" max="26" step="0.5"
+                    placeholder="En attente..." value="" disabled>
+            </div>
+        
+            <div class="mb-3 w-100">
+                <label for="input_plancher" class="form-label">Consigne Plancher:</label>
+                <input id="input_plancher" class="form-control text-end" type="number" min="20" max="32" step="0.5"
+                    placeholder="En attente..." value="" disabled>
+            </div>
+
+        </div>
+
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}

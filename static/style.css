@@ -1,46 +1,71 @@
 #controlSchema {
-    width:800px;
-    height:600px;
-    margin:10px;
-
-  
+    position: relative;    
+    height: auto;
+    margin: 10px auto;
 }
 
-#spinnerCirculateur{
-    position: absolute;
-    top: 297px; 
-    left: 181px;
+#controlSchema img {
+    width: 100%; /* Rendre l'image responsive */
+    height: auto; /* Maintenir les proportions */
+    display: block;
+    margin: auto;
 }
 
-#btnCirculateur {
+/* Positionnement des boutons en fonction de l'image */
+#btnCirculateur, #spinnerCirculateur, #departTemp, #retourTemp, #alimTemp, #ambianceTemp, #deltaTemp {
     position: absolute;
-    top: 297px;
-    left: 50px;
+    transform: translate(-50%, -50%); /* Centrage parfait */
 }
 
-#departTemp {
-    position: absolute;
-    top: 383px;
-    left: 158px;
-}
-#retourTemp {
-    position: absolute;
-    top: 163px;
-    left: 370px;
-}
-#alimTemp {
-    position: absolute;
-    top: 73px;
-    left: 158px;
-}
-#ambianceTemp {
-    position: absolute;
-    top: 79px;
-    left: 370px;
+
+/* Adaptation des positions pour différentes tailles d'écran */
+/* Écrans larges (≥1200px) */
+@media (min-width: 1201px) {    
+    #controlSchema { width: 800px; }
+    
+    #btnCirculateur { top: 50%; left: 11%; }
+    #spinnerCirculateur { top: 50%; left: 21%; }
+    #departTemp { top: 66%; left: 41%; }
+    #retourTemp { top: 29%; left: 41%; }
+    #alimTemp { top: 9%; left: 22%; }
+    #ambianceTemp { top: 10%; left: 55%; }
+    #deltaTemp { top: 17%; left: 55%; }
 }
 
-#deltaTemp {
-    position: absolute;
-    top: 279px;
-    left: 370px;
+@media (max-width: 1200px) {
+    #controlSchema { width: 800px; }
+
+    #btnCirculateur { top: 50%; left: 11%; }
+    #spinnerCirculateur { top: 50%; left: 21%; }
+    #departTemp { top: 66%; left: 41%; }
+    #retourTemp { top: 29%; left: 41%; }
+    #alimTemp { top: 9%; left: 22%; }
+    #ambianceTemp { top: 10%; left: 60%; }
+    #deltaTemp { top: 17%; left: 60%; }
 }
+
+@media (max-width: 768px) {
+    #controlSchema { width: 600px; }
+
+    #btnCirculateur { top: 51%; left: 9%; }
+    #spinnerCirculateur { top: 51%; left: 21%; }
+    #departTemp { top: 66%; left: 41%; }
+    #retourTemp { top: 28%; left: 41%; }
+    #alimTemp { top: 5%; left: 21%; }
+    #ambianceTemp { top: 5%; left: 65%; }
+    #deltaTemp { top: 15%; left: 65%; }
+}
+
+@media (max-width: 480px) {
+    #controlSchema { width: 400px; }
+
+    #btnCirculateur { top: 51%; left: 7%; }
+    #spinnerCirculateur { top: 51%; left: 20%; }
+    #departTemp { top: 65%; left: 42%; }
+    #retourTemp { top: 29%; left: 42%; }
+    #alimTemp { top: 3%; left: 21%; }
+    #ambianceTemp { top: 3%; left: 66%; }
+    #deltaTemp { top: 19%; left: 66%; }
+}
+
+
