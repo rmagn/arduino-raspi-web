@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/justgage.js"></script>
 
 
+
 {% endblock %}
 
 {% block content %}
@@ -74,8 +75,10 @@
                 <button id="departTemp" class="btn btn-danger">...°C</button>
                 <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
                 <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
-                <button id="ambianceTemp" type="button" class="btn btn-info" style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
-                <button id="deltaTemp" type="button" class="btn btn-info" style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+                <button id="ambianceTemp" type="button" class="btn btn-info"
+                    style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+                <button id="deltaTemp" type="button" class="btn btn-info"
+                    style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
             </div>
 
         </div>
@@ -86,13 +89,13 @@
             <div class="mb-3 w-100">
                 <label for="input_ambiance" class="form-label">Consigne Ambiance:</label>
                 <input id="input_ambiance" class="form-control text-end" type="number" min="10" max="26" step="0.5"
-                    placeholder="En attente..." value="" disabled>
+                    placeholder="En attente..." value="">
             </div>
-        
+
             <div class="mb-3 w-100">
                 <label for="input_plancher" class="form-label">Consigne Plancher:</label>
-                <input id="input_plancher" class="form-control text-end" type="number" min="20" max="32" step="0.5"
-                    placeholder="En attente..." value="" disabled>
+                <input id="input_plancher" class="form-control text-end" type="number" min="20" max="35" step="0.5"
+                    placeholder="En attente..." value="">
             </div>
 
         </div>
@@ -141,6 +144,10 @@
                             document.getElementById("ambianceTemp").innerHTML = data.temp_ambiance + " °C";
                             document.getElementById("deltaTemp").innerHTML = data.deltaT + " °C";
 
+                            // Mise à jour des input_ambiance et input_plancher
+                            document.getElementById("input_ambiance").value = data.consigne_ambiance;
+                            document.getElementById("input_plancher").value = data.consigne_plancher;
+
                             gaugePlancherDepart.refresh(data.temp_plancher_depart);
                             gaugePlancherRetour.refresh(data.temp_plancher_retour);
                             gaugeDepartAlim.refresh(data.temp_depart_alim);
@@ -165,7 +172,7 @@
 
         request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
         request.send();
-        setTimeout(GetArduinoInputs, 5000);
+        setTimeout(GetArduinoInputs, 10000);
     }
 
     function showError(message) {
@@ -207,6 +214,44 @@
                 showError("Erreur de connexion à l'Arduino.");
             });
     });
+
+    $(document).ready(function () {
+
+        // Lorsqu'un champ est modifié, on récupère la nouvelle consigne et on envoie une requête POST
+        $('#input_ambiance').change(function () {
+            let consigneAmbiance = $(this).val();
+            console.log(`Consigne Ambiance modifiée: ${consigneAmbiance}`);  // Log de débogage
+            sendPostInput('ConsigneAmbiance', consigneAmbiance);
+        });
+
+        $('#input_plancher').change(function () {
+            let consignePlancher = $(this).val();
+            console.log(`Consigne Plancher modifiée: ${consignePlancher}`);  // Log de débogage
+            sendPostInput('ConsignePlancher', consignePlancher);
+        });
+    });
+
+    function sendPostInput(key, value) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://192.168.1.111:7777/set_inputs", true); // L'URL du serveur
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        // Construire la chaîne de données à envoyer
+        let data = `${key}=${value}`;
+
+        console.log(`Données envoyées : ${data}`);  // Log pour débogage
+
+        // Envoi de la requête
+        xhr.send(data);
+
+        // Log pour débogage
+        xhr.onload = function () {
+            console.log('Réponse du serveur:', xhr.responseText);  // Affiche la réponse du serveur
+        };
+    }
+
+
+
 
 </script>
 {% endblock %}
