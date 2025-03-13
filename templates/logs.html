@@ -5,17 +5,20 @@
 {% block head %}
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> 
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script src="https://hammerjs.github.io/dist/hammer.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.2.0"></script>
+
 
 <!-- jQuery pour AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<style>    
+<style>
     canvas {
         max-width: 100%;
     }
+
     #logChart {
         max-height: 500px !important;
     }
@@ -23,6 +26,30 @@
 {% endblock %}
 
 {% block content %}
+<!-- Toast pour le statut de l'Arduino -->
+<div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3"
+    role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Toast pour les erreurs -->
+<div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3"
+    role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            <span id="errorMessageText"></span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
+    </div>
+</div>
+
 <div class="container">
     <h1 class="text-center">📊 Logs des Températures</h1>
 
@@ -45,6 +72,9 @@
 
 {% block scripts %}
 <script>
+    let consigneAmbiance = 21; // Valeur par défaut, sera mise à jour
+    let consignePlancher = 28; // Valeur par défaut, sera mise à jour
+
     $(document).ready(function () {
         let ctx = document.getElementById("logChart").getContext("2d");
         let logChart = new Chart(ctx, {
@@ -64,7 +94,7 @@
                 scales: {
                     x: {
                         type: "time",
-                        time: { 
+                        time: {
                             unit: "hour",
                             tooltipFormat: "dd/MM/yyyy HH:mm", // ✅ Format 24h français
                             displayFormats: {
@@ -73,11 +103,39 @@
                                 day: "dd/MM",
                                 month: "MM/yyyy"
                             }
-                        },                                                    
+                        },
                     },
                     y: { beginAtZero: false }
                 },
                 plugins: {
+                    annotation: {
+                        annotations: {
+                            lineConsigneAmbiance: {
+                                type: 'line',
+                                yMin: 0, // Initialisation
+                                yMax: 0, // Sera mis à jour dynamiquement
+                                borderColor: 'purple',
+                                borderWidth: 2,
+                                label: {
+                                    content: "Consigne Ambiance",
+                                    enabled: true,
+                                    position: "start"
+                                }
+                            },
+                            lineConsignePlancher: {
+                                type: 'line',
+                                yMin: 0, // Initialisation
+                                yMax: 0, // Sera mis à jour dynamiquement
+                                borderColor: 'brown',
+                                borderWidth: 2,
+                                label: {
+                                    content: "Consigne Plancher",
+                                    enabled: true,
+                                    position: "start"
+                                }
+                            }
+                        }
+                    },
                     zoom: {
                         pan: {
                             enabled: true,   // ✅ Active le déplacement du graphe
@@ -88,11 +146,11 @@
                         },
                         zoom: {
                             wheel: {
-                                enabled: true, 
+                                enabled: true,
                                 speed: 0.1
                             },
                             pinch: {
-                                enabled: true 
+                                enabled: true
                             },
                             mode: "x",
                         }
@@ -107,6 +165,7 @@
             $.getJSON(`/api/logs?period=${period}`, function (data) {
                 $("#loading").remove();
                 let labels = [], tempPlancherDepart = [], tempPlancherRetour = [], tempDepartAlim = [], tempAmbiance = [];
+                GetArduinoInputs();//mise à jour des consignes
 
                 data.forEach(log => {
                     let dateObj = new Date(log.timestamp);
@@ -122,6 +181,14 @@
                 logChart.data.datasets[1].data = tempPlancherRetour;
                 logChart.data.datasets[2].data = tempDepartAlim;
                 logChart.data.datasets[3].data = tempAmbiance;
+
+                // Mettre à jour les lignes des consignes
+                logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMin = consigneAmbiance;
+                logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMax = consigneAmbiance;
+
+                logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMin = consignePlancher;
+                logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMax = consignePlancher;
+
                 logChart.update();
             }).fail(function () {
                 $("#loading").remove();
@@ -137,5 +204,83 @@
 
         fetchLogs();  // Chargement initial
     });
+
+    function GetArduinoInputs() {
+        let nocache = "&nocache=" + Math.random() * 1000000;
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    try {
+                        let data = JSON.parse(this.responseText);
+
+                        if (data.temp_plancher_depart !== undefined) {
+
+                            // Mise à jour des input_ambiance et input_plancher
+                            consigneAmbiance = data.consigne_ambiance;
+                            consignePlancher = data.consigne_plancher;
+
+                        }
+
+                        hideError();
+                    } catch (e) {
+                        console.error("Erreur de parsing JSON:", e);
+                        showError("Données invalides reçues de l'Arduino.");
+                    }
+                } else {
+                    showError("L'Arduino ne répond pas. Vérifiez la connexion !");
+                }
+            }
+        };
+
+        request.onerror = function () {
+            showError("Erreur réseau. Impossible de contacter l'Arduino.");
+        };
+
+        request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
+        request.send();
+        setTimeout(GetArduinoInputs, 10000);
+    }
+
+    function showError(message) {
+        let errorToastEl = document.getElementById("errorToast");
+        let errorMessageText = document.getElementById("errorMessageText");
+
+        if (errorToastEl && errorMessageText) {
+            errorMessageText.textContent = message;
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.show();
+        }
+    }
+
+    function hideError() {
+        let errorToastEl = document.getElementById("errorToast");
+        if (errorToastEl) {
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.hide();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        GetArduinoInputs();
+
+        var arduinoToastEl = document.getElementById("arduinoToast");
+        var arduinoToast = new bootstrap.Toast(arduinoToastEl, { delay: 5000 });
+
+        fetch("/arduino_status")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "OK") {
+                    document.getElementById("arduinoStatusText").textContent = data.message;
+                    arduinoToast.show();
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                showError("Erreur de connexion à l'Arduino.");
+            });
+    });
+
 </script>
 {% endblock %}
