@@ -4,7 +4,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./data:/app/data  # Volume externe pour SQLite
+      - ./data:/app/data  # Volume SQLite par défaut (modifiable via override)
     environment:
-      - ENV_MODE=DEV
+      - ENV_MODE=DEV  # Mode par défaut (modifié via override)
     restart: unless-stopped

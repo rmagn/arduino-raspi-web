@@ -14,6 +14,7 @@ logs/
 
 # Docker
 *.dockerignore
+docker-compose.override.yml
 
 # IDE & OS
 .vscode/
