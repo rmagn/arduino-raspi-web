@@ -3,6 +3,7 @@ import sqlite3
 import os
 import sys
 print("🚀 Flask Application Running on Docker!")
+print("version 1.001")
 
 print("coucou and Welcom !")
 import csv
@@ -114,23 +115,38 @@ def get_logs():
     return jsonify(logs)
 
 # 📌 API pour exporter les logs en CSV
+import datetime
+
 @app.route('/api/export-csv/TemperatureLogs', methods=['GET'])
 def export_csv():
     
     start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
+    end_date = request.args.get("end_date")    
 
     db = get_db()
     cursor = db.cursor()
 
-    if start_date and end_date:
-        cursor.execute("SELECT * FROM logs WHERE timestamp BETWEEN ? AND ?", (start_date, end_date))
-    else:
-        cursor.execute("SELECT * FROM logs")
+    print(f"🔍 Requête CSV - Start: {start_date}, End: {end_date}")  # Debug
+
+    # 🔹 Vérifier et convertir le format de date
+    try:
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").strftime("%Y-%m-%d %H:%M:%S")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").strftime("%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        print("❌ Erreur : format de date incorrect reçu !")
+        return "Format de date incorrect", 400
+
+    print(f"✅ Date convertie - Start: {start_date}, End: {end_date}")  # Debug
+
+    cursor.execute("SELECT * FROM logs WHERE timestamp BETWEEN ? AND ?", (start_date, end_date))
 
     logs = cursor.fetchall()
     db.close()
 
+    # Vérifier s'il y a des logs
+    if not logs:
+        print("⚠️ Aucun log trouvé pour cette plage de dates !")
+    
     # 📌 Création du fichier CSV en mémoire avec UTF-8 + BOM
     output = io.StringIO()
     csv_writer = csv.writer(output, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -153,6 +169,7 @@ def export_csv():
                      mimetype="text/csv", 
                      as_attachment=True, 
                      download_name=filename)
+
 
 # 📌 Fonction pour enregistrer les données dans SQLite
 def save_to_database(data):
