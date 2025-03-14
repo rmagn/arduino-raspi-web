@@ -67,6 +67,35 @@
     <!-- Graphique -->
     <canvas id="logChart"></canvas>
 
+    <!-- Bouton Export -->
+    <div class="text-center my-3">
+        <button id="openExportModal" class="btn btn-success">📥 Exporter en CSV</button>
+    </div>
+
+    <!-- Modale de sélection de dates -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportModalLabel">Exporter les Logs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="startDate" class="form-label">Date de début :</label>
+                    <input type="datetime-local" id="startDate" class="form-control">
+
+                    <label for="endDate" class="form-label mt-3">Date de fin :</label>
+                    <input type="datetime-local" id="endDate" class="form-control">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" id="confirmExport">Exporter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 {% endblock %}
 
@@ -74,10 +103,11 @@
 <script>
     let consigneAmbiance = 21; // Valeur par défaut, sera mise à jour
     let consignePlancher = 28; // Valeur par défaut, sera mise à jour
+    let logChart;
 
     $(document).ready(function () {
         let ctx = document.getElementById("logChart").getContext("2d");
-        let logChart = new Chart(ctx, {
+        logChart = new Chart(ctx, {
             type: "line",
             data: {
                 labels: [],
@@ -114,7 +144,7 @@
                                 type: 'line',
                                 yMin: 0, // Initialisation
                                 yMax: 0, // Sera mis à jour dynamiquement
-                                borderColor: 'purple',
+                                borderColor: 'red',
                                 borderWidth: 2,
                                 label: {
                                     content: "Consigne Ambiance",
@@ -126,7 +156,7 @@
                                 type: 'line',
                                 yMin: 0, // Initialisation
                                 yMax: 0, // Sera mis à jour dynamiquement
-                                borderColor: 'brown',
+                                borderColor: 'green',
                                 borderWidth: 2,
                                 label: {
                                     content: "Consigne Plancher",
@@ -182,13 +212,6 @@
                 logChart.data.datasets[2].data = tempDepartAlim;
                 logChart.data.datasets[3].data = tempAmbiance;
 
-                // Mettre à jour les lignes des consignes
-                logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMin = consigneAmbiance;
-                logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMax = consigneAmbiance;
-
-                logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMin = consignePlancher;
-                logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMax = consignePlancher;
-
                 logChart.update();
             }).fail(function () {
                 $("#loading").remove();
@@ -220,6 +243,15 @@
                             consigneAmbiance = data.consigne_ambiance;
                             consignePlancher = data.consigne_plancher;
 
+                            // Mettre à jour les lignes des consignes
+                            logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMin = consigneAmbiance;
+                            logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMax = consigneAmbiance;
+
+                            logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMin = consignePlancher;
+                            logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMax = consignePlancher;
+
+                            logChart.update();
+
                         }
 
                         hideError();
@@ -239,7 +271,6 @@
 
         request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
         request.send();
-        setTimeout(GetArduinoInputs, 10000);
     }
 
     function showError(message) {
@@ -281,6 +312,31 @@
                 showError("Erreur de connexion à l'Arduino.");
             });
     });
+
+    $(document).ready(function () {
+    // Ouvrir le modal lors du clic sur "Exporter en CSV"
+    $("#openExportModal").click(function () {
+        $("#exportModal").modal("show");
+    });
+
+    // Confirmer l'export avec les dates sélectionnées
+    $("#confirmExport").click(function () {
+        let startDate = $("#startDate").val();
+        let endDate = $("#endDate").val();
+
+        if (!startDate || !endDate) {
+            alert("❌ Veuillez sélectionner une date de début et une date de fin.");
+            return;
+        }
+
+        // Générer l'URL avec les paramètres
+        let exportUrl = `api/export-csv/TemperatureLogs?start_date=${startDate}&end_date=${endDate}`;
+        window.location.href = exportUrl;
+
+        // Fermer le modal après l'export
+        $("#exportModal").modal("hide");
+    });
+});
 
 </script>
 {% endblock %}

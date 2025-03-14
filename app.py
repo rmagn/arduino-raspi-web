@@ -1,11 +1,12 @@
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template, send_file
 import sqlite3
 import os
 import sys
 print("🚀 Flask Application Running on Docker!")
 
 print("coucou and Welcom !")
-
+import csv
+import io
 import datetime
 import requests
 
@@ -112,7 +113,46 @@ def get_logs():
 
     return jsonify(logs)
 
+# 📌 API pour exporter les logs en CSV
+@app.route('/api/export-csv/TemperatureLogs', methods=['GET'])
+def export_csv():
+    
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
 
+    db = get_db()
+    cursor = db.cursor()
+
+    if start_date and end_date:
+        cursor.execute("SELECT * FROM logs WHERE timestamp BETWEEN ? AND ?", (start_date, end_date))
+    else:
+        cursor.execute("SELECT * FROM logs")
+
+    logs = cursor.fetchall()
+    db.close()
+
+    # 📌 Création du fichier CSV en mémoire avec UTF-8 + BOM
+    output = io.StringIO()
+    csv_writer = csv.writer(output, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    # 📌 Ajouter le BOM UTF-8 pour compatibilité Excel
+    output.write('\ufeff')
+
+    # 📌 Ajouter les en-têtes
+    csv_writer.writerow(["Id", "Horodatage", "Plancher Départ", "Plancher Retour", "Départ Alim", "Ambiance", "DeltaT", "Consigne Ambiance", "Consigne Plancher"])
+
+    # 📌 Ajouter les logs
+    for row in logs:
+        csv_writer.writerow(row)
+
+    output.seek(0)
+
+    # 📌 Générer le fichier CSV pour téléchargement
+    filename = f"temperature_logs_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
+    return send_file(io.BytesIO(output.getvalue().encode("utf-8-sig")), 
+                     mimetype="text/csv", 
+                     as_attachment=True, 
+                     download_name=filename)
 
 # 📌 Fonction pour enregistrer les données dans SQLite
 def save_to_database(data):
