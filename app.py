@@ -3,7 +3,7 @@ import sqlite3
 import os
 import sys
 print("🚀 Flask Application Running on Docker!")
-print("version 1.001")
+print("version 1.02")
 
 print("coucou and Welcom !")
 import csv
@@ -73,11 +73,17 @@ def log_data():
     # Récupération des valeurs envoyées par l’Arduino
     data = (
         timestamp,
-        request.args.get('temp_plancher_depart'),
-        request.args.get('temp_plancher_retour'),
-        request.args.get('temp_depart_alim'),
-        request.args.get('temp_ambiance'),
-        request.args.get('deltaT')
+        request.args.get('arduino_Id'),
+        request.args.get('Value0', None),
+        request.args.get('Value1', None),
+        request.args.get('Value2', None),
+        request.args.get('Value3', None),
+        request.args.get('Value4', None),
+        request.args.get('Value5', None),
+        request.args.get('Value6', None),
+        request.args.get('Value7', None),
+        request.args.get('Value8', None),
+        request.args.get('Value9', None)
     )
 
     # Stockage des données dans SQLite
@@ -89,28 +95,46 @@ def log_data():
 @app.route('/api/logs', methods=['GET'])
 def get_logs():
     period = request.args.get("period", "3h")
+    arduinoId = request.args.get("arduinoId")
     
     db = get_db()
     cursor = db.cursor()
 
-    if period == "7d":
-        cursor.execute("SELECT timestamp, temp_plancher_depart, temp_plancher_retour, temp_depart_alim, temp_ambiance, deltaT FROM logs WHERE timestamp >= datetime('now', '-7 days') ORDER BY timestamp ASC")
-    elif period == "30d":
-        cursor.execute("SELECT timestamp, temp_plancher_depart, temp_plancher_retour, temp_depart_alim, temp_ambiance, deltaT FROM logs WHERE timestamp >= datetime('now', '-30 days') ORDER BY timestamp ASC")
-    elif period == "24h":
-        cursor.execute("SELECT timestamp, temp_plancher_depart, temp_plancher_retour, temp_depart_alim, temp_ambiance, deltaT FROM logs WHERE timestamp >= datetime('now', '-1 day') ORDER BY timestamp ASC")
-    else:
-        cursor.execute("SELECT timestamp, temp_plancher_depart, temp_plancher_retour, temp_depart_alim, temp_ambiance, deltaT  FROM logs WHERE timestamp >= datetime('now', '-3 hours') ORDER BY timestamp ASC")
+    query = "SELECT timestamp, arduino_Id, Value0, Value1, Value2, Value3, Value4, Value5, Value6, Value7, Value8, Value9 FROM logs WHERE timestamp >= datetime('now', ?) "
+    params = []
 
+    if period == "7d":
+        params.append("-7 days")
+    elif period == "30d":
+        params.append("-30 days")
+    elif period == "24h":
+        params.append("-1 day")
+    else:
+        params.append("-3 hours")
+
+    # Vérifier si arduinoId est fourni et l'ajouter aux conditions
+    if arduinoId:
+        query += "AND arduino_Id = ? "
+        params.append(arduinoId)
+
+    query += "ORDER BY timestamp ASC"
+
+    cursor.execute(query, params)
     rows = cursor.fetchall()
     db.close()
 
     logs = [{"timestamp": row[0],  # Assurer que c'est un format ISO 8601
-             "temp_plancher_depart": row[1], 
-             "temp_plancher_retour": row[2],
-             "temp_depart_alim": row[3], 
-             "temp_ambiance": row[4], 
-             "deltaT": row[5]} for row in rows]
+                "arduino_Id": row[1],
+                "Value0": row[2],
+                "Value1": row[3],
+                "Value2": row[4],
+                "Value3": row[5],
+                "Value4": row[6],
+                "Value5": row[7],
+                "Value6": row[8],
+                "Value7": row[9],
+                "Value8": row[10],
+                "Value9": row[11]} for row in rows]
 
     return jsonify(logs)
 
@@ -175,8 +199,7 @@ def export_csv():
 def save_to_database(data):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("""INSERT INTO logs (timestamp, temp_plancher_depart, temp_plancher_retour, 
-                        temp_depart_alim, temp_ambiance, deltaT) VALUES (?, ?, ?, ?, ?, ?)""", data)
+    cursor.execute("""INSERT INTO logs (timestamp, arduino_Id, Value0, Value1, Value2, Value3, Value4, Value5, Value6, Value7, Value8, Value9) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", data)
     db.commit()
     db.close()
 
