@@ -100,7 +100,7 @@ def get_logs():
     db = get_db()
     cursor = db.cursor()
 
-    query = "SELECT timestamp, arduino_Id, Value0, Value1, Value2, Value3, Value4, Value5, Value6, Value7, Value8, Value9 FROM logs WHERE timestamp >= datetime('now', ?) "
+    query = "SELECT timestamp, arduino_Id, Value0, Value1, Value2, Value3, Value4, Value5, Value6, Value7, Value8, Value9 FROM logs WHERE timestamp >= datetime('now','localtime', ?) "
     params = []
 
     if period == "7d":

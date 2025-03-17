@@ -15,12 +15,18 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    canvas {
-        max-width: 100%;
+    .chart-container {
+        min-height: 500px;
+        /* Hauteur minimale */
+        max-height: 700px;
+        /* Facultatif, limite la hauteur */
+        margin-bottom: 30px;
+        padding: 10px;
+        /* Ajoute un petit padding */
     }
 
-    #logChart {
-        max-height: 500px !important;
+    canvas {
+        max-width: 100%;
     }
 </style>
 {% endblock %}
@@ -50,7 +56,7 @@
     </div>
 </div>
 
-<div class="container">
+<div class="container-fluid mt-4">
     <h1 class="text-center">📊 Logs des Températures</h1>
 
     <!-- Sélecteur de plage de temps -->
@@ -64,8 +70,21 @@
         </select>
     </div>
 
-    <!-- Graphique -->
-    <canvas id="logChart"></canvas>
+    <div class="row">
+        <div class="col-12 col-xxl-6">
+            <!-- Graphique 1 (Plancher Chauffant) -->
+            <div class="chart-container">
+                <canvas id="logChart1"></canvas>
+            </div>
+        </div>
+        <div class="col-12 col-xxl-6">
+            <!-- Graphique 2 (Chaudière & Solaire) -->
+            <div class="chart-container">
+                <canvas id="logChart2"></canvas>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Bouton Export -->
     <div class="text-center my-3">
@@ -94,8 +113,6 @@
             </div>
         </div>
     </div>
-
-
 </div>
 {% endblock %}
 
@@ -103,25 +120,21 @@
 <script>
     let consigneAmbiance = 21; // Valeur par défaut, sera mise à jour
     let consignePlancher = 28; // Valeur par défaut, sera mise à jour
-    let logChart;
+    let logChart1, logChart2;
 
     $(document).ready(function () {
-        let ctx = document.getElementById("logChart").getContext("2d");
-        logChart = new Chart(ctx, {
+        let ctx1 = document.getElementById("logChart1").getContext("2d");
+        let ctx2 = document.getElementById("logChart2").getContext("2d");
+
+        logChart1 = new Chart(ctx1, {
             type: "line",
             data: {
                 labels: [],
                 datasets: [
-                    { label: "Plancher Départ", data: [], borderColor: "red", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Plancher Retour", data: [], borderColor: "blue", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Départ Alim", data: [], borderColor: "green", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Ambiance", data: [], borderColor: "orange", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Ballon tampon - haut", data: [], borderColor: "red", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Ballon tampon - bas", data: [], borderColor: "blue", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Solaire aller", data: [], borderColor: "green", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Solaire retour", data: [], borderColor: "orange", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Exterieur", data: [], borderColor: "orange", pointStyle: false, fill: false, tension: 0.4 },
-                    { label: "Fumée chaudière", data: [], borderColor: "orange", pointStyle: false, fill: false, tension: 0.4 }
+                    { label: "Plancher Départ", data: [], borderColor: "red", tension: 0.4, pointStyle: false },
+                    { label: "Plancher Retour", data: [], borderColor: "blue", tension: 0.4, pointStyle: false },
+                    { label: "Départ Alim", data: [], borderColor: "green", tension: 0.4, pointStyle: false },
+                    { label: "Ambiance", data: [], borderColor: "orange", tension: 0.4, pointStyle: false }
                 ]
             },
             options: {
@@ -129,11 +142,6 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: {
-                        grid: {
-                            color: 'red',
-                            borderColor: 'grey',
-                            tickColor: 'grey'
-                        },
                         type: "time",
                         time: {
                             unit: "hour",
@@ -149,13 +157,17 @@
                     y: { beginAtZero: false }
                 },
                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'Plancher Chauffant RDC',
+                    },
                     annotation: {
                         annotations: {
                             lineConsigneAmbiance: {
                                 type: 'line',
                                 yMin: 0, // Initialisation
                                 yMax: 0, // Sera mis à jour dynamiquement
-                                borderColor: 'red',
+                                borderColor: 'purple',
                                 borderWidth: 2,
                                 label: {
                                     content: "Consigne Ambiance",
@@ -167,7 +179,7 @@
                                 type: 'line',
                                 yMin: 0, // Initialisation
                                 yMax: 0, // Sera mis à jour dynamiquement
-                                borderColor: 'green',
+                                borderColor: 'brown',
                                 borderWidth: 2,
                                 label: {
                                     content: "Consigne Plancher",
@@ -178,104 +190,126 @@
                         }
                     },
                     zoom: {
-                        pan: {
-                            enabled: true,   // ✅ Active le déplacement du graphe
-                            mode: 'x',       // ✅ Déplacement horizontal uniquement
-                            //modifierKey: "ctrl", // 🔹 Ajoute un modificateur (ex : maintenir CTRL pour déplacer)
-                            speed: 0.5,      // 🔹 Rend le déplacement plus fluide
-                            threshold: 10    // 🔹 Évite les déplacements trop brusques
-                        },
+                        pan: { enabled: true, mode: "x" },
                         zoom: {
-                            wheel: {
-                                enabled: true,
-                                speed: 0.1
-                            },
-                            pinch: {
-                                enabled: true
-                            },
-                            mode: "x",
+                            wheel: { enabled: true },
+                            mode: "x"
                         }
                     }
                 }
             }
         });
 
-        $("#logChart").after('<p id="loading" class="text-center">📡 Chargement des données...</p>');
+        logChart2 = new Chart(ctx2, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    { label: "Ballon Haut", data: [], borderColor: "red", tension: 0.4, pointStyle: false },
+                    { label: "Ballon Bas", data: [], borderColor: "blue", tension: 0.4, pointStyle: false },
+                    { label: "Départ Solaire", data: [], borderColor: "green", tension: 0.4, pointStyle: false },
+                    { label: "Retour Solaire", data: [], borderColor: "orange", tension: 0.4, pointStyle: false },
+                    { label: "Extérieur", data: [], borderColor: "purple", tension: 0.4, pointStyle: false },
+                    { label: "Fumée Chaudière", data: [], borderColor: "brown", tension: 0.4, pointStyle: false }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: "time",
+                        time: {
+                            unit: "hour",
+                            tooltipFormat: "dd/MM/yyyy HH:mm", // ✅ Format 24h français
+                            displayFormats: {
+                                minute: "HH:mm",
+                                hour: "HH:mm",
+                                day: "dd/MM",
+                                month: "MM/yyyy"
+                            }
+                        },
+                    },
+                    y: {
+                        type: "logarithmic", // 🔥 Ajout de l'échelle logarithmique
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function (value, index, values) {
+                                return Number(value).toLocaleString(); // ✅ Affichage des valeurs lisibles
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Local chaudière',
+                    }, zoom: { pan: { enabled: true, mode: "x" }, zoom: { wheel: { enabled: true }, mode: "x" } }
+                }
+            }
+        });
 
         function fetchLogs(period = "3h") {
-            let labels = []; // Liste de tous les timestamps
-            let allLogs = {}; // Stockage des logs par timestamp
+            let labels1 = [], labels2 = [];
+            let tempPlancherDepart = [], tempPlancherRetour = [], tempDepartAlim = [], tempAmbiance = [];
+            let tempBallonHaut = [], tempBallonBas = [], tempDepartSolaire = [], tempRetourSolaire = [], tempExterieur = [], tempFumee = [];
 
-            function processLogs(data, arduinoId) {
-                data.forEach(log => {
+            let requests = [
+                $.getJSON(`/api/logs?period=${period}&arduinoId=0`),
+                $.getJSON(`/api/logs?period=${period}&arduinoId=1`)
+            ];
+
+            Promise.all(requests).then(responses => {
+
+                responses[0].forEach(log => {
                     let dateObj = new Date(log.timestamp);
-
-                    if (!allLogs[dateObj]) {
-                        allLogs[dateObj] = { // Initialisation de l’objet pour ce timestamp
-                            Value0: null, Value1: null, Value2: null, Value3: null, Value4: null,
-                            Value5: null, Value6: null, Value7: null, Value8: null, Value9: null
-                        };
-                    }
-
-                    // Associe les valeurs à leur timestamp
-                    allLogs[dateObj][`Arduino${arduinoId}_Value0`] = log.Value0;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value1`] = log.Value1;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value2`] = log.Value2;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value3`] = log.Value3;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value4`] = log.Value4;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value5`] = log.Value5;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value6`] = log.Value6;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value7`] = log.Value7;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value8`] = log.Value8;
-                    allLogs[dateObj][`Arduino${arduinoId}_Value9`] = log.Value9;
+                    labels1.push(dateObj);
+                    tempPlancherDepart.push(log.Value0);
+                    tempPlancherRetour.push(log.Value1);
+                    tempDepartAlim.push(log.Value2);
+                    tempAmbiance.push(log.Value3);
                 });
-            }
 
-            $.when(
-                $.getJSON(`/api/logs?period=${period}&arduinoId=0`, function (data) { processLogs(data, 0); }),
-                $.getJSON(`/api/logs?period=${period}&arduinoId=1`, function (data) { processLogs(data, 1); })
-            ).then(function () {
-                // Ordonner les timestamps
-                labels = Object.keys(allLogs).map(date => new Date(date)).sort((a, b) => a - b);
+                responses[1].forEach(log => {
+                    let dateObj = new Date(log.timestamp);
+                    labels2.push(dateObj);
+                    tempBallonHaut.push(log.Value0);
+                    tempBallonBas.push(log.Value1);
+                    tempDepartSolaire.push(log.Value2);
+                    tempRetourSolaire.push(log.Value3);
+                    tempExterieur.push(log.Value4);
+                    tempFumee.push(log.Value5);
+                });
 
-                let tempPlancherDepart = labels.map(date => allLogs[date]?.Arduino0_Value0 ?? null);
-                let tempPlancherRetour = labels.map(date => allLogs[date]?.Arduino0_Value1 ?? null);
-                let tempDepartAlim = labels.map(date => allLogs[date]?.Arduino0_Value2 ?? null);
-                let tempAmbiance = labels.map(date => allLogs[date]?.Arduino0_Value3 ?? null);
+                labels1.sort((a, b) => a - b);
+                labels2.sort((a, b) => a - b);
 
-                let tempBallonHaut = labels.map(date => allLogs[date]?.Arduino1_Value0 ?? null);
-                let tempBallonBas = labels.map(date => allLogs[date]?.Arduino1_Value1 ?? null);
-                let tempDepartSolaire = labels.map(date => allLogs[date]?.Arduino1_Value2 ?? null);
-                let tempRetourSolaire = labels.map(date => allLogs[date]?.Arduino1_Value3 ?? null);
-                let tempExterieur = labels.map(date => allLogs[date]?.Arduino1_Value4 ?? null);
-                let tempFumee = labels.map(date => allLogs[date]?.Arduino1_Value5 ?? null);
+                logChart1.data.labels = labels1;
+                logChart1.data.datasets[0].data = tempPlancherDepart;
+                logChart1.data.datasets[1].data = tempPlancherRetour;
+                logChart1.data.datasets[2].data = tempDepartAlim;
+                logChart1.data.datasets[3].data = tempAmbiance;
 
-                // Mise à jour des datasets du graphe
-                logChart.data.labels = labels;
-                logChart.data.datasets[0].data = tempPlancherDepart;
-                logChart.data.datasets[1].data = tempPlancherRetour;
-                logChart.data.datasets[2].data = tempDepartAlim;
-                logChart.data.datasets[3].data = tempAmbiance;
-                logChart.data.datasets[4].data = tempBallonHaut;
-                logChart.data.datasets[5].data = tempBallonBas;
-                logChart.data.datasets[6].data = tempDepartSolaire;
-                logChart.data.datasets[7].data = tempRetourSolaire;
-                logChart.data.datasets[8].data = tempExterieur;
-                logChart.data.datasets[9].data = tempFumee;
+                logChart2.data.labels = labels2;
+                logChart2.data.datasets[0].data = tempBallonHaut;
+                logChart2.data.datasets[1].data = tempBallonBas;
+                logChart2.data.datasets[2].data = tempDepartSolaire;
+                logChart2.data.datasets[3].data = tempRetourSolaire;
+                logChart2.data.datasets[4].data = tempExterieur;
+                logChart2.data.datasets[5].data = tempFumee;
 
-                logChart.update();
-            }).fail(function () {
+                logChart1.update();
+                logChart2.update();
+            }).catch(() => {
                 alert("❌ Erreur : impossible de récupérer les logs.");
             });
-
         }
-
 
         $("#timeFilter").change(function () {
             fetchLogs($(this).val());
         });
 
-        fetchLogs();  // Chargement initial
+        fetchLogs();
     });
 
     function GetArduinoInputs() {
@@ -294,13 +328,13 @@
                             consignePlancher = data.consigne_plancher;
 
                             // Mettre à jour les lignes des consignes
-                            logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMin = consigneAmbiance;
-                            logChart.options.plugins.annotation.annotations.lineConsigneAmbiance.yMax = consigneAmbiance;
+                            logChart1.options.plugins.annotation.annotations.lineConsigneAmbiance.yMin = consigneAmbiance;
+                            logChart1.options.plugins.annotation.annotations.lineConsigneAmbiance.yMax = consigneAmbiance;
 
-                            logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMin = consignePlancher;
-                            logChart.options.plugins.annotation.annotations.lineConsignePlancher.yMax = consignePlancher;
+                            logChart1.options.plugins.annotation.annotations.lineConsignePlancher.yMin = consignePlancher;
+                            logChart1.options.plugins.annotation.annotations.lineConsignePlancher.yMax = consignePlancher;
 
-                            logChart.update();
+                            logChart1.update();
 
                         }
 

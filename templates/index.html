@@ -12,94 +12,96 @@
 {% endblock %}
 
 {% block content %}
-<!-- Toast pour le statut de l'Arduino -->
-<div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3"
-    role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-        <div class="toast-body">
-            <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
+<div class="container">
+    <!-- Toast pour le statut de l'Arduino -->
+    <div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3"
+        role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-            aria-label="Close"></button>
     </div>
-</div>
 
-<!-- Toast pour les erreurs -->
-<div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3"
-    role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-        <div class="toast-body">
-            <span id="errorMessageText"></span>
+    <!-- Toast pour les erreurs -->
+    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3"
+        role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span id="errorMessageText"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-            aria-label="Close"></button>
     </div>
-</div>
 
-<div class="row text-center">
-    <div class="col-md-3">
-        <h5>Départ plancher</h5>
-        <div id="gaugePlancherDepart" class="gauge-container"></div>
+    <div class="row text-center">
+        <div class="col-md-3">
+            <h5>Départ plancher</h5>
+            <div id="gaugePlancherDepart" class="gauge-container"></div>
+        </div>
+        <div class="col-md-3">
+            <h5>Retour plancher</h5>
+            <div id="gaugePlancherRetour" class="gauge-container"></div>
+        </div>
+        <div class="col-md-3">
+            <h5>Alimentation plancher</h5>
+            <div id="gaugeDepartAlim" class="gauge-container"></div>
+        </div>
+        <div class="col-md-3">
+            <h5>Ambiance</h5>
+            <div id="gaugeAmbiance" class="gauge-container"></div>
+        </div>
     </div>
-    <div class="col-md-3">
-        <h5>Retour plancher</h5>
-        <div id="gaugePlancherRetour" class="gauge-container"></div>
-    </div>
-    <div class="col-md-3">
-        <h5>Alimentation plancher</h5>
-        <div id="gaugeDepartAlim" class="gauge-container"></div>
-    </div>
-    <div class="col-md-3">
-        <h5>Ambiance</h5>
-        <div id="gaugeAmbiance" class="gauge-container"></div>
-    </div>
-</div>
 
-<style>
-    .gauge-container {
-        width: 150px;
-        height: 120px;
-        margin: auto;
-    }
-</style>
+    <style>
+        .gauge-container {
+            width: 150px;
+            height: 120px;
+            margin: auto;
+        }
+    </style>
 
 
-<div id="dashboard" class="mt-4">
-    <div class="row align-items-center"> <!-- Centre verticalement -->
-        <!-- Colonne avec le schéma -->
-        <div id="Col_Schema" class="col-xl-8">
-            <div id="controlSchema">
-                <img src="{{ url_for('static', filename='schema.png') }}" />
-                <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
-                <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
-                <button id="departTemp" class="btn btn-danger">...°C</button>
-                <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
-                <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
-                <button id="ambianceTemp" type="button" class="btn btn-info"
-                    style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
-                <button id="deltaTemp" type="button" class="btn btn-info"
-                    style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+    <div id="dashboard" class="mt-4">
+        <div class="row align-items-center"> <!-- Centre verticalement -->
+            <!-- Colonne avec le schéma -->
+            <div id="Col_Schema" class="col-xl-8">
+                <div id="controlSchema">
+                    <img src="{{ url_for('static', filename='schema.png') }}" />
+                    <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
+                    <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
+                    <button id="departTemp" class="btn btn-danger">...°C</button>
+                    <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
+                    <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
+                    <button id="ambianceTemp" type="button" class="btn btn-info"
+                        style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+                    <button id="deltaTemp" type="button" class="btn btn-info"
+                        style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+                </div>
+
+            </div>
+
+            <!-- Colonne avec les consignes, alignée à droite et centrée verticalement -->
+            <div id="Col_Consignes" class="col-xl-4 d-flex flex-column align-items-end justify-content-center">
+
+                <div class="mb-3 w-100">
+                    <label for="input_ambiance" class="form-label">Consigne Ambiance:</label>
+                    <input id="input_ambiance" class="form-control text-end" type="number" min="10" max="26" step="0.5"
+                        placeholder="En attente..." value="">
+                </div>
+
+                <div class="mb-3 w-100">
+                    <label for="input_plancher" class="form-label">Consigne Plancher:</label>
+                    <input id="input_plancher" class="form-control text-end" type="number" min="20" max="35" step="0.5"
+                        placeholder="En attente..." value="">
+                </div>
+
             </div>
 
         </div>
-
-        <!-- Colonne avec les consignes, alignée à droite et centrée verticalement -->
-        <div id="Col_Consignes" class="col-xl-4 d-flex flex-column align-items-end justify-content-center">
-
-            <div class="mb-3 w-100">
-                <label for="input_ambiance" class="form-label">Consigne Ambiance:</label>
-                <input id="input_ambiance" class="form-control text-end" type="number" min="10" max="26" step="0.5"
-                    placeholder="En attente..." value="">
-            </div>
-
-            <div class="mb-3 w-100">
-                <label for="input_plancher" class="form-label">Consigne Plancher:</label>
-                <input id="input_plancher" class="form-control text-end" type="number" min="20" max="35" step="0.5"
-                    placeholder="En attente..." value="">
-            </div>
-
-        </div>
-
     </div>
 </div>
 
