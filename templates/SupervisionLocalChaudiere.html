@@ -1,0 +1,187 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block head %}
+<!-- JustGage et Raphael (dépendance nécessaire) -->
+<script src="https://cdn.jsdelivr.net/npm/raphael/raphael.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/justgage.js"></script>
+
+
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Toast pour le statut de l'Arduino -->
+    <div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3"
+        role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Toast pour les erreurs -->
+    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3"
+        role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span id="errorMessageText"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div class="row text-center">
+        <div class="col-md-2">
+            <h5>Fumée chaudière</h5>
+            <div id="gaugeFumee" class="gauge-container"></div>
+        </div>
+        <div class="col-md-2">
+            <h5>Ballon tampon haut</h5>
+            <div id="gaugeBallonH" class="gauge-container"></div>
+        </div>
+        <div class="col-md-2">
+            <h5>Ballon tampon bas</h5>
+            <div id="gaugeBallonB" class="gauge-container"></div>
+        </div>
+        <div class="col-md-2">
+            <h5>Solaire aller</h5>
+            <div id="gaugeSolaireAller" class="gauge-container"></div>
+        </div>
+        <div class="col-md-2">
+            <h5>Solaire retour</h5>
+            <div id="gaugeSolaireRetour" class="gauge-container"></div>
+        </div>
+        <div class="col-md-2">
+            <h5>Exterieur</h5>
+            <div id="gaugeExterieur" class="gauge-container"></div>
+        </div>
+    </div>
+
+    <style>
+        .gauge-container {
+            width: 150px;
+            height: 120px;
+            margin: auto;
+        }
+    </style>
+
+    
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    // Définition des gauges avec un label personnalisé
+    function createGauge(id, title, min, max) {
+        return new JustGage({
+            id: id,
+            value: min,
+            min: min,
+            max: max,
+            title: title,
+            label: "°C",
+            decimals: 1
+        });
+    }
+
+    // Création des gauges
+    let gaugeFumee = createGauge("gaugeFumee", "Fumée chaudière", 0, 300);
+    let gaugeBallonH = createGauge("gaugeBallonH", "Ballon tampon haut", 0, 100);
+    let gaugeBallonB = createGauge("gaugeBallonB", "Ballon tampon bas", 0, 100);
+    let gaugeSolaireAller = createGauge("gaugeSolaireAller", "Solaire aller", 0, 150);
+    let gaugeSolaireRetour = createGauge("gaugeSolaireRetour", "Solaire retour", 0, 150);
+    let gaugeExterieur = createGauge("gaugeExterieur", "Exterieur", -15, 50);
+
+
+    function GetArduinoInputs() {
+        let nocache = "&nocache=" + Math.random() * 1000000;
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    try {
+                        let data = JSON.parse(this.responseText);
+
+                        if (data.temp_ballon_H !== undefined) {     
+
+                            gaugeBallonH.refresh(data.temp_ballon_H);
+                            gaugeBallonB.refresh(data.temp_ballon_B);
+                            gaugeSolaireAller.refresh(data.temp_capteur_aller);
+                            gaugeSolaireRetour.refresh(data.temp_capteur_retour);
+                            gaugeExterieur.refresh(data.temp_exterieur);
+                            gaugeFumee.refresh(data.temp_fumee);
+
+                        }
+
+                        hideError();
+                    } catch (e) {
+                        console.error("Erreur de parsing JSON:", e);
+                        showError("Données invalides reçues de l'Arduino.");
+                    }
+                } else {
+                    showError("L'Arduino ne répond pas. Vérifiez la connexion !");
+                }
+            }
+        };
+
+        request.onerror = function () {
+            showError("Erreur réseau. Impossible de contacter l'Arduino.");
+        };
+
+        request.open("GET", "http://192.168.1.112:7777/ajax_inputs" + nocache, true);
+        request.send();
+        setTimeout(GetArduinoInputs, 10000);
+    }
+
+    function showError(message) {
+        let errorToastEl = document.getElementById("errorToast");
+        let errorMessageText = document.getElementById("errorMessageText");
+
+        if (errorToastEl && errorMessageText) {
+            errorMessageText.textContent = message;
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.show();
+        }
+    }
+
+    function hideError() {
+        let errorToastEl = document.getElementById("errorToast");
+        if (errorToastEl) {
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.hide();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        GetArduinoInputs();
+
+        var arduinoToastEl = document.getElementById("arduinoToast");
+        var arduinoToast = new bootstrap.Toast(arduinoToastEl, { delay: 5000 });
+
+        fetch("/arduino_status")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "OK") {
+                    document.getElementById("arduinoStatusText").textContent = data.message;
+                    arduinoToast.show();
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                showError("Erreur de connexion à l'Arduino.");
+            });
+    });
+    
+   
+</script>
+{% endblock %}

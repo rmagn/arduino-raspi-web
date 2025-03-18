@@ -59,6 +59,16 @@ def home():
 def logs():
     return render_template("logs.html")
 
+# 📌 Route pour la page  Supervision Plancher RDC
+@app.route('/SupervisonPlancher')
+def SupervisonPlancher():
+    return render_template("SupervisonPlancher.html")
+
+# 📌 Route pour la page  Supervision Local Chaudière
+@app.route('/SupervisionLocalChaudiere')
+def SupervisionLocalChaudiere():
+    return render_template("SupervisionLocalChaudiere.html")
+
 # 📌 Route pour servir les fichiers statiques
 @app.route('/static/<path:filename>')
 def serve_static(filename):
@@ -179,7 +189,7 @@ def export_csv():
     output.write('\ufeff')
 
     # 📌 Ajouter les en-têtes
-    csv_writer.writerow(["Id", "Horodatage", "Plancher Départ", "Plancher Retour", "Départ Alim", "Ambiance", "DeltaT", "Consigne Ambiance", "Consigne Plancher"])
+    csv_writer.writerow(["Id", "Horodatage", "Arduino_Id", "Value0", "Value1", "Value2", "Value3", "Value4", "Value5", "Value6", "Value7", "Value8", "Value9"])
 
     # 📌 Ajouter les logs
     for row in logs:

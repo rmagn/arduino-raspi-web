@@ -310,6 +310,8 @@
         });
 
         fetchLogs();
+        setTimeout(GetArduinoInputs1, 10000); // 🚀 Mise à jour automatique
+        setTimeout(GetArduinoInputs2, 10000);
     });
 
     function GetArduinoInputs() {
@@ -355,6 +357,103 @@
 
         request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
         request.send();
+    }
+
+    function GetArduinoInputs1() {
+        let nocache = "&nocache=" + Math.random() * 1000000;
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                try {
+                    let data = JSON.parse(this.responseText);
+                    let now = new Date();  // 📌 Heure actuelle
+
+                    if (data.temp_plancher_depart !== undefined) {
+                        // Ajouter la nouvelle valeur SANS supprimer les anciennes
+                        logChart1.data.labels.push(now);
+                        logChart1.data.datasets[0].data.push(data.temp_plancher_depart);
+                        logChart1.data.datasets[1].data.push(data.temp_plancher_retour);
+                        logChart1.data.datasets[2].data.push(data.temp_depart_alim);
+                        logChart1.data.datasets[3].data.push(data.temp_ambiance);
+
+                        // Trier les labels pour éviter un affichage incohérent
+                        let combined = logChart1.data.labels.map((label, index) => ({
+                            label,
+                            values: logChart1.data.datasets.map(dataset => dataset.data[index])
+                        }));
+
+                        combined.sort((a, b) => a.label - b.label); // 🟢 Tri par date croissante
+
+                        logChart1.data.labels = combined.map(item => item.label);
+                        logChart1.data.datasets.forEach((dataset, i) => {
+                            dataset.data = combined.map(item => item.values[i]);
+                        });
+
+                        logChart1.update();
+                    }
+                } catch (e) {
+                    console.error("Erreur de parsing JSON:", e);
+                    showError("Données invalides reçues de l'Arduino.");
+                }
+            }
+        };
+
+        request.onerror = function () {
+            showError("Erreur réseau. Impossible de contacter l'Arduino.");
+        };
+
+        request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
+        request.send();
+        setTimeout(GetArduinoInputs1, 10000); // ⏳ Mise à jour toutes les 10 sec
+    }
+
+    function GetArduinoInputs2() {
+        let nocache = "&nocache=" + Math.random() * 1000000;
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                try {
+                    let data = JSON.parse(this.responseText);
+                    let now = new Date();  // 📌 Heure actuelle
+
+                    if (data.temp_ballon_H !== undefined) {
+                        logChart2.data.labels.push(now);
+                        logChart2.data.datasets[0].data.push(data.temp_ballon_H);
+                        logChart2.data.datasets[1].data.push(data.temp_ballon_B);
+                        logChart2.data.datasets[2].data.push(data.temp_capteur_aller);
+                        logChart2.data.datasets[3].data.push(data.temp_capteur_retour);
+                        logChart2.data.datasets[4].data.push(data.temp_exterieur);
+                        logChart2.data.datasets[5].data.push(data.temp_fumee);
+
+                        // Trier les labels pour éviter un affichage incohérent
+                        let combined = logChart2.data.labels.map((label, index) => ({
+                            label,
+                            values: logChart2.data.datasets.map(dataset => dataset.data[index])
+                        }));
+
+                        combined.sort((a, b) => a.label - b.label); // 🟢 Tri par date croissante
+
+                        logChart2.data.labels = combined.map(item => item.label);
+                        logChart2.data.datasets.forEach((dataset, i) => {
+                            dataset.data = combined.map(item => item.values[i]);
+                        });
+
+                        logChart2.update();
+                    }
+                } catch (e) {
+                    console.error("Erreur de parsing JSON:", e);
+                    showError("Données invalides reçues de l'Arduino.");
+                }
+            }
+        };
+
+        request.onerror = function () {
+            showError("Erreur réseau. Impossible de contacter l'Arduino.");
+        };
+
+        request.open("GET", "http://192.168.1.112:7777/ajax_inputs" + nocache, true);
+        request.send();
+        setTimeout(GetArduinoInputs2, 10000); // ⏳ Mise à jour toutes les 10 sec
     }
 
     function showError(message) {
@@ -419,6 +518,7 @@
 
             // Fermer le modal après l'export
             $("#exportModal").modal("hide");
+            
         });
     });
 
