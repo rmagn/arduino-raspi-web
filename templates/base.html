@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
-
+<html lang="fr" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,54 +9,78 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-
-    <!-- jquery -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Styles personnalisés -->
-    <link rel="stylesheet" href="{{ url_for('serve_static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
 
     {% block head %}{% endblock %}
 </head>
 
-<body>
-
-    <!-- Barre de navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/"><i class="bi bi-house-heart-fill"></i> Accueil</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/SupervisonPlancher"><i class="bi bi-thermometer-sun"></i> Plancher RDC </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/SupervisionLocalChaudiere"><i class="bi bi-thermometer-sun"></i> Local chaudière</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logs"><i class="bi bi-graph-up"></i>Graphes & exports</a>
+<body class="bg-body">
+    <header class="navbar-light fixed-top header-static bg-white shadow-sm">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="bi bi-house-heart-fill text-primary"></i>
+                </a>
+                <button class="navbar-toggler ms-auto icon-md btn btn-light p-0" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-animation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav navbar-nav-scroll ms-auto">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">Supervision</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/SupervisonPlancher"><i class="bi bi-thermometer-sun"></i> Plancher RDC</a></li>
+                                <li><a class="dropdown-item" href="/SupervisionLocalChaudiere"><i class="bi bi-thermometer-sun"></i> Local chaudière</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logs"><i class="bi bi-graph-up"></i> Graphes & exports</a>
+                        </li>
+                    </ul>
+                </div>
+                <ul class="nav flex-nowrap align-items-center ms-sm-3 list-unstyled">                                    
+                    <li class="nav-item ms-3">
+                        <button class="btn btn-outline-secondary" id="theme-toggle">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
                     </li>
                 </ul>
             </div>
-        </div>
-    </nav>
-
-
-    {% block content %}{% endblock %}
-
-
-    <footer class="text-center mt-5 py-3 bg-light">
-        <p>&copy; 2025 - Magnan's Family - Est. 2003</p>
-    </footer>
-
-    <!-- Bootstrap JS -->
+        </nav>
+    </header>
+<!-- **************** MAIN CONTENT START **************** -->
+    <main class="mt-5 pt-5">        
+        {% block content %}{% endblock %}
+    </main>
+<!-- **************** MAIN CONTENT END **************** -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const themeToggle = document.getElementById("theme-toggle");
+            const currentTheme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-bs-theme", currentTheme);
+            themeToggle.innerHTML = currentTheme === "dark" ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+
+            themeToggle.addEventListener("click", () => {
+                let newTheme = document.documentElement.getAttribute("data-bs-theme") === "light" ? "dark" : "light";
+                document.documentElement.setAttribute("data-bs-theme", newTheme);
+                localStorage.setItem("theme", newTheme);
+                themeToggle.innerHTML = newTheme === "dark" ? '<i class="bi bi-sun text-white"></i>' : '<i class="bi bi-moon-stars"></i>';
+            });
+        });
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>
-
 </html>

@@ -12,96 +12,151 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-2">
-    <!-- Toast pour le statut de l'Arduino -->
-    <div id="arduinoToast" class="toast align-items-center text-white bg-info border-0 position-fixed top-0 end-0 m-3"
-        role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                <span id="arduinoStatusText">Vérification de la connexion à l'Arduino...</span>
+<div class="container">
+
+    <div class="row align-items-start g-4">
+
+        <!-- start Left nav bar -->
+        <div class="col-lg-3">
+
+            <!-- Advanced filter responsive toggler START -->
+            <div class="d-flex align-items-center d-lg-none">
+                <button class="border-0 bg-transparent" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasSideNavbar" aria-controls="offcanvasSideNavbar">
+                    <span class="btn btn-primary"><i class="fa-solid fa-sliders-h"></i></span>
+                    <span class="h6 mb-0 fw-bold d-lg-none ms-2">My profile</span>
+                </button>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                aria-label="Close"></button>
-        </div>
-    </div>
+            <!-- Advanced filter responsive toggler END -->
 
-    <!-- Toast pour les erreurs -->
-    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3"
-        role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                <span id="errorMessageText"></span>
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                aria-label="Close"></button>
-        </div>
-    </div>
+            <!-- Navbar START-->
+            <nav class="navbar navbar-expand-lg mx-0 custom-navbar">
+                <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSideNavbar">
+                    <!-- Offcanvas header -->
+                    <div class="offcanvas-header">
+                        <button type="button" class="btn-close text-reset ms-auto" data-bs-dismiss="offcanvas"
+                            aria-label="Close"></button>
+                    </div>
 
-    <div class="row text-center">
-        <div class="col-md-3">
-            <h5>Départ plancher</h5>
-            <div id="gaugePlancherDepart" class="gauge-container"></div>
-        </div>
-        <div class="col-md-3">
-            <h5>Retour plancher</h5>
-            <div id="gaugePlancherRetour" class="gauge-container"></div>
-        </div>
-        <div class="col-md-3">
-            <h5>Alimentation plancher</h5>
-            <div id="gaugeDepartAlim" class="gauge-container"></div>
-        </div>
-        <div class="col-md-3">
-            <h5>Ambiance</h5>
-            <div id="gaugeAmbiance" class="gauge-container"></div>
-        </div>
-    </div>
+                    <!-- Offcanvas body -->
+                    <div class="offcanvas-body d-block px-2 px-lg-0">
+                        <!-- Card START -->
+                        <div class="card overflow-hidden">
+                            <!-- Cover image -->
+                            <div class="h-50px"
+                                style="background-image:url(static/images/BannerNavBarLeft.jpg); background-position: center; background-size: cover; background-repeat: no-repeat;">
+                            </div>
+                            <!-- Card body START -->
+                            <div class="card-body pt-0">
+                                <div class="text-center">
+                                    <!-- Avatar -->
+                                    <div class="avatar avatar-lg mt-n5 mb-3">
+                                        <a href="#!"><img class="avatar-img rounded border border-white border-3"
+                                                src="{{ url_for('static',filename='images/Avatar (200x200).jpg')}}" alt=""></a>
+                                    </div>
+                                    <!-- Info -->
+                                    <h5 class="mb-0"> <a href="#!">Artaix</a> </h5>
+                                    <small>The most confortable Home</small>
+                                    <p class="mt-3">Qu'il fait bon d'y vivre !
+                                    </p>
 
-    <style>
-        .gauge-container {
-            width: 150px;
-            height: 120px;
-            margin: auto;
-        }
-    </style>
+                                    <!-- User stat START -->
+                                    <div class="hstack gap-2 gap-xl-3 justify-content-center">
+                                        <!-- User stat item -->
+                                        <div>
+                                            <h6 class="mb-0">4</h6>
+                                            <small>Enfants !</small>
+                                        </div>
+                                        <!-- Divider -->
+                                        <div class="vr"></div>
+                                        <!-- User stat item -->
+                                        <div>
+                                            <h6 class="mb-0">1</h6>
+                                            <small>Chat</small>
+                                        </div>
+                                        <!-- Divider -->
+                                        <div class="vr"></div>
+                                        <!-- User stat item -->
+                                        <div>
+                                            <h6 class="mb-0">Beaucoup !</h6>
+                                            <small>de bonheur !</small>
+                                        </div>
+                                    </div>
+                                    <!-- User stat END -->
+                                </div>
 
+                                <!-- Divider -->
+                                <hr>
 
-    <div id="dashboard" class="mt-4">
-        <div class="row align-items-center"> <!-- Centre verticalement -->
-            <!-- Colonne avec le schéma -->
-            <div id="Col_Schema" class="col-xl-8">
-                <div id="controlSchema">
-                    <img src="{{ url_for('static', filename='schema.png') }}" />
-                    <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
-                    <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
-                    <button id="departTemp" class="btn btn-danger">...°C</button>
-                    <button id="retourTemp" type="button" class="btn btn-primary">...°C</button>
-                    <button id="alimTemp" type="button" class="btn btn-danger">...°C</button>
-                    <button id="ambianceTemp" type="button" class="btn btn-info"
-                        style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
-                    <button id="deltaTemp" type="button" class="btn btn-info"
-                        style="width: 90px; text-align: right; padding-right: 10px;">...°C</button>
+                                <!-- Side Nav START -->
+                                <ul class="nav nav-link-secondary flex-column fw-bold gap-2">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="my-profile.html"> <span>Feed
+                                            </span></a>
+                                    </li>                                    
+                                </ul>
+                                <!-- Side Nav END -->
+                            </div>
+                            <!-- Card body END -->
+                            <!-- Card footer -->
+                            <div class="card-footer text-center py-2">
+                                <a class="btn btn-link btn-sm" href="/">Réglages </a>
+                            </div>
+                        </div>
+                        <!-- Card END -->
+
+                        <!-- Helper link START -->
+                        <ul class="nav small mt-4 justify-content-center lh-1">
+                            <li class="nav-item">
+                                <a class="nav-link" href="my-profile-about.html">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="settings.html">Settings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" target="_blank" href="https://support.webestica.com/login">Support
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" target="_blank" href="docs/index.html">Docs </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="help.html">Help</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="privacy-and-terms.html">Privacy &amp; terms</a>
+                            </li>
+                        </ul>
+                        <!-- Helper link END -->
+                        <!-- Copyright -->
+                        <p class="small text-center mt-1">©2024 <a class="text-reset" target="_blank"
+                                href="/"> 2025 - Magnan's Family - Est. 2003 </a></p>
+                    </div>
                 </div>
+            </nav>
+            <!-- Navbar END-->
+        </div>
+        <!-- end Left nav bar -->
 
+        <!-- start Main content -->
+        <div class="col-md-8 col-lg-6 vstack gap-4">
+            <!-- Section Calendrier Outlook -->
+            <div class="card shadow-sm  p-4">
+                <h2 class="text-secondary">Calendrier</h2>
+                <div id="events" class="fw-semibold text-muted">Chargement des événements...</div>
             </div>
-
-            <!-- Colonne avec les consignes, alignée à droite et centrée verticalement -->
-            <div id="Col_Consignes" class="col-xl-4 d-flex flex-column align-items-end justify-content-center">
-
-                <div class="mb-3 w-100">
-                    <label for="input_ambiance" class="form-label">Consigne Ambiance:</label>
-                    <input id="input_ambiance" class="form-control text-end" type="number" min="10" max="26" step="0.5"
-                        placeholder="En attente..." value="">
+            
+            <!-- Section Météo -->
+            <div class="card shadow-sm  p-4">
+                <h2 class="text-secondary">Météo</h2>
+                <div class="weather-info">
+                    <p id="current-weather" class="fw-semibold text-muted">Chargement...</p>
+                    <p id="tomorrow-weather" class="fw-semibold text-muted">Chargement...</p>
                 </div>
-
-                <div class="mb-3 w-100">
-                    <label for="input_plancher" class="form-label">Consigne Plancher:</label>
-                    <input id="input_plancher" class="form-control text-end" type="number" min="20" max="35" step="0.5"
-                        placeholder="En attente..." value="">
-                </div>
-
             </div>
 
         </div>
+        <!-- end Main content -->
     </div>
 </div>
 

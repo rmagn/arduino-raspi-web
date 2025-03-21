@@ -7,6 +7,7 @@ data/*.db
 
 # Environnement variables
 .env
+Azure.txt
 
 # Logs et temporaires
 logs/
@@ -20,3 +21,6 @@ docker-compose.override.yml
 .vscode/
 .idea/
 .DS_Store
+
+# environnement virtuel
+venv/*

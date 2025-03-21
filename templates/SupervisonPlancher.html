@@ -1,6 +1,6 @@
 ﻿{% extends "base.html" %}
 
-{% block title %}Tableau de bord{% endblock %}
+{% block title %}Supervision plancher RDC{% endblock %}
 
 {% block head %}
 <!-- JustGage et Raphael (dépendance nécessaire) -->
@@ -70,7 +70,7 @@
             <!-- Colonne avec le schéma -->
             <div id="Col_Schema" class="col-xl-8">
                 <div id="controlSchema">
-                    <img src="{{ url_for('static', filename='schema.png') }}" />
+                    <img src="{{ url_for('static', filename='schemas/schema_Plancher.png') }}" />
                     <button id="btnCirculateur" type="button" class="btn btn-danger">Pompe</button>
                     <div id="spinnerCirculateur" class="spinner-border text-danger"></div>
                     <button id="departTemp" class="btn btn-danger">...°C</button>
