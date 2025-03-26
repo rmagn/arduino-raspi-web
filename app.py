@@ -7,6 +7,10 @@ from routes.routes_auth import auth_bp
 from config import app_config as config
 from services.auth_service import auth
 from utils.formater import todatetime, format_datetime
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
 
 print("🚀 Flask Application Running on Docker!")
 print("version 1.03")

@@ -52,6 +52,10 @@ FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
 # ems,
 # it's better to use a database-backed session store instead.
 
+REDIRECT_HOST = os.getenv("REDIRECT_HOST", "http://localhost:5000")
+REDIRECT_URI = REDIRECT_HOST + REDIRECT_PATH
+
+
 # Vérifie que tout est bien chargé
 # Vérifie que tout est bien chargé
 print(f'####################################################')

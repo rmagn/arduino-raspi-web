@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 # Installer les dépendances système et les locales
 RUN apt-get update && \
-    apt-get install -y sqlite3 locales && \
+    apt-get install -y sqlite3 locales gcc build-essential libffi-dev && \
     echo "fr_FR.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen && \
     update-locale LANG=fr_FR.UTF-8 && \

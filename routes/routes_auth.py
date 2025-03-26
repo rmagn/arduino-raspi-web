@@ -7,14 +7,13 @@ from config import app_config as config
 # 🔐 Création du blueprint
 auth_bp = Blueprint("auth_bp", __name__)
 
-
 # 🔑 Page de connexion Microsoft
 @auth_bp.route("/login")
 def login():
-    print("🧭 Redirection Microsoft URI:", url_for("auth_bp.auth_response", _external=True))
+    print("🧭 URI redirection (config.REDIRECT_URI):", config.REDIRECT_URI)
     return render_template("auth/login.html", version=identity.__version__, **auth.log_in(
-        scopes=config.SCOPE,        
-        redirect_uri=url_for("auth_bp.auth_response", _external=True)
+        scopes=config.SCOPE,
+        redirect_uri=config.REDIRECT_URI  # <-- Utilise celui défini dans .env
     ))
 
 # 🎯 Redirection après authentification
@@ -26,12 +25,12 @@ def auth_response():
         return render_template("auth/auth_error.html", result=result)
     
     print("✅ Authentification réussie ! Redirection vers la home.")
-    return redirect(url_for("pages.home"))  # redirige vers l'accueil après connexion
+    return redirect(url_for("pages.home"))
 
 # 🔓 Déconnexion
 @auth_bp.route("/logout")
 def logout():
-    return redirect(auth.log_out(url_for("pages.home", _external=True)))
+    return redirect(auth.log_out(config.REDIRECT_HOST + url_for("pages.home")))
 
 # 👤 Info utilisateur (optionnel)
 @auth_bp.route("/me")
