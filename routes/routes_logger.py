@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, send_file
 import io
 import csv
 import datetime
-from services.database_service import get_db, save_to_database
+from services.database_service import get_db, saveLog_to_database
 
 logger_bp = Blueprint("logger", __name__)
 
@@ -26,7 +26,7 @@ def log_data():
         request.args.get('Value9', None)
     )
 
-    save_to_database(data)
+    saveLog_to_database(data)
     return "Données reçues", 200
 
 

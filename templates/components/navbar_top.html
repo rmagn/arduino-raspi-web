@@ -1,0 +1,90 @@
+<header class="navbar-light fixed-top header-static bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <button class="btn btn-primary icon-md text-center" style="height: 40px;width: 40px;">                   
+                        <i class="bi bi-house-heart-fill"></i>                
+                </button>            
+            </a>
+            <button class="navbar-toggler ms-auto icon-md btn btn-light p-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+            <ul class="nav flex-nowrap align-items-center ms-sm-3 list-unstyled">
+                {% if current_user %}
+                <li class="nav-item ms-2 dropdown">
+                    <a class="nav-link btn icon-md p-0" href="#" id="profileDropdown" role="button"
+                        data-bs-auto-close="outside" data-bs-display="static" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <img class="avatar-navbar rounded-circle" src="{{ user_photo or url_for('static', filename='images/default-avatar.jpg') }}"
+                            alt="Avatar utilisateur">
+                    </a>
+                    <ul class="dropdown-menu dropdown-animation dropdown-menu-end pt-3 small me-md-n3"
+                        aria-labelledby="profileDropdown">
+                        <!-- Profile info -->
+                        <li class="px-3">
+                            <div class="d-flex align-items-center position-relative">
+                                <!-- Avatar -->
+                                <div class="avatar me-3">
+                                    <img class="avatar-img rounded-circle"
+                                        src="{{ user_photo or url_for('static', filename='images/default-avatar.jpg') }}" alt="avatar">
+                                </div>
+                                <div>
+                                    <a class="h6 stretched-link" href="#">{{ current_user.get("name") or
+                                        current_user.get("preferred_username") }}</a>
+                                    <p class="small m-0">Connecté</p>
+                                </div>
+                            </div>
+                            <a class="dropdown-item btn btn-primary-soft btn-sm my-2 text-center" href="#">Mon
+                                profil</a>
+                        </li>
+                        <!-- Links -->
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear fa-fw me-2"></i>Paramètres</a></li>
+                        <li class="dropdown-divider"></li>
+                        <li><a class="dropdown-item bg-danger-soft-hover" href="/logout"><i
+                                    class="bi bi-power fa-fw me-2"></i>Déconnexion</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <!-- Dark mode options START -->
+                        <li>
+                            <div
+                                class="modeswitch-item theme-icon-active d-flex justify-content-center gap-3 align-items-center p-2 pb-0">
+                                <span>Mode:</span>
+                                <button type="button" class="btn btn-modeswitch nav-link text-primary-hover mb-0 active"
+                                    data-bs-theme-value="light" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    data-bs-title="Clair">
+                                    <i class="bi bi-sun fa-fw mode-switch"></i>
+                                </button>
+                                <button type="button" class="btn btn-modeswitch nav-link text-primary-hover mb-0"
+                                    data-bs-theme-value="dark" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    data-bs-title="Sombre">
+                                    <i class="bi bi-moon-stars fa-fw mode-switch"></i>
+                                </button>
+                                <button type="button" class="btn btn-modeswitch nav-link text-primary-hover mb-0"
+                                    data-bs-theme-value="auto" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    data-bs-title="Auto">
+                                    <i class="bi bi-circle-half fa-fw mode-switch"></i>
+                                </button>
+                            </div>
+                        </li>
+                        <!-- Dark mode options END-->
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="btn btn-outline-primary" href="/login"><i class="bi bi-box-arrow-in-right"></i>
+                        Connexion</a>
+                </li>
+                {% endif %}
+            </ul>
+
+        </div>
+    </nav>
+</header>
+<!-- **************** MAIN CONTENT START **************** -->

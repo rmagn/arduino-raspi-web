@@ -18,6 +18,7 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # 📌 Adresse IP de l’Arduino (à adapter si besoin)
 ARDUINO_IP = "http://192.168.1.111:7777/ajax_inputs"
+ARDUINO_IP_CHAUDIERE = "http://192.168.1.112:7777/ajax_inputs"
 
 load_dotenv()  # Charge les variables d'environnement depuis .env
 
@@ -42,11 +43,13 @@ ENDPOINT_EVENTS = 'https://graph.microsoft.com/v1.0/me/events?$top=5'
 
 # You can find the proper permission names from this document
 # https://docs.microsoft.com/en-us/graph/permissions-reference
-SCOPE = ["User.ReadBasic.All", "Calendars.ReadBasic", "Calendars.Read", "Calendars.ReadWrite"]
+SCOPE = ["User.Read", "Calendars.ReadBasic", "Calendars.Read", "Calendars.ReadWrite"]
 
 # Tells the Flask-session extension to store sessions in the filesystem
 SESSION_TYPE = "filesystem"
-# Using the file system will not work in most production systems,
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+# Using the file system will not work in most production syst
+# ems,
 # it's better to use a database-backed session store instead.
 
 # Vérifie que tout est bien chargé

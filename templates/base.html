@@ -19,67 +19,48 @@
 </head>
 
 <body class="bg-body">
-    <header class="navbar-light fixed-top header-static bg-white shadow-sm">
-        <nav class="navbar navbar-expand-lg">
-            <div class="container">
-                <a class="navbar-brand" href="/">
-                    <i class="bi bi-house-heart-fill text-primary"></i>
-                </a>
-                <button class="navbar-toggler ms-auto icon-md btn btn-light p-0" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false"
-                    aria-label="Toggle navigation">
-                    <span class="navbar-toggler-animation">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <ul class="navbar-nav navbar-nav-scroll ms-auto">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">Supervision</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/SupervisonPlancher"><i class="bi bi-thermometer-sun"></i> Plancher RDC</a></li>
-                                <li><a class="dropdown-item" href="/SupervisionLocalChaudiere"><i class="bi bi-thermometer-sun"></i> Local chaudière</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/logs"><i class="bi bi-graph-up"></i> Graphes & exports</a>
-                        </li>
-                    </ul>
-                </div>
-                <ul class="nav flex-nowrap align-items-center ms-sm-3 list-unstyled">                                    
-                    <li class="nav-item ms-3">
-                        <button class="btn btn-outline-secondary" id="theme-toggle">
-                            <i class="bi bi-moon-stars"></i>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
+    {% include "components/navbar_top.html" %}
 <!-- **************** MAIN CONTENT START **************** -->
-    <main class="mt-5 pt-5">        
+    <main class="mt-5 pt-5">       
+        
         {% block content %}{% endblock %}
     </main>
 <!-- **************** MAIN CONTENT END **************** -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const themeToggle = document.getElementById("theme-toggle");
-            const currentTheme = localStorage.getItem("theme") || "light";
-            document.documentElement.setAttribute("data-bs-theme", currentTheme);
-            themeToggle.innerHTML = currentTheme === "dark" ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
-
-            themeToggle.addEventListener("click", () => {
-                let newTheme = document.documentElement.getAttribute("data-bs-theme") === "light" ? "dark" : "light";
-                document.documentElement.setAttribute("data-bs-theme", newTheme);
-                localStorage.setItem("theme", newTheme);
-                themeToggle.innerHTML = newTheme === "dark" ? '<i class="bi bi-sun text-white"></i>' : '<i class="bi bi-moon-stars"></i>';
+            const themeButtons = document.querySelectorAll(".btn-modeswitch");
+            const htmlEl = document.documentElement;
+    
+            // Récupère le thème depuis le localStorage ou utilise "auto" par défaut
+            let savedTheme = localStorage.getItem("theme") || "auto";
+    
+            // Applique le thème
+            applyTheme(savedTheme);
+    
+            themeButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const newTheme = button.getAttribute("data-bs-theme-value");
+                    applyTheme(newTheme);
+                    localStorage.setItem("theme", newTheme);
+    
+                    // Gère les classes "active"
+                    themeButtons.forEach(btn => btn.classList.remove("active"));
+                    button.classList.add("active");
+                });
             });
+    
+            function applyTheme(theme) {
+                if (theme === "auto") {
+                    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    htmlEl.setAttribute("data-bs-theme", prefersDark ? "dark" : "light");
+                } else {
+                    htmlEl.setAttribute("data-bs-theme", theme);
+                }
+            }
         });
     </script>
+    
 
     {% block scripts %}{% endblock %}
 </body>

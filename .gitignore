@@ -24,3 +24,6 @@ docker-compose.override.yml
 
 # environnement virtuel
 venv/*
+
+#session Flask
+flask_session/*
