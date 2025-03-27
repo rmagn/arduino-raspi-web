@@ -23,6 +23,23 @@
         <!-- start Main content -->
         <div class="col-md-8 col-lg-6 vstack gap-4">
             <!-- Section Calendrier Outlook -->
+            <style>
+                /* Supprimer la flèche Bootstrap par défaut */
+                .accordion-button::after {
+                    display: none !important;
+                }
+            
+                /* Par défaut : flèche vers le bas */
+                .accordion-button .toggle-icon {
+                    transition: transform 0.3s ease;
+                }
+            
+                /* Si le panneau est ouvert : faire pivoter la flèche */
+                .accordion-button:not(.collapsed) .toggle-icon {
+                    transform: rotate(180deg);
+                }
+            </style>
+            
             <div class="card shadow-sm  p-4">
                 <h2 class="text-secondary">Calendrier</h2>
 
@@ -30,10 +47,11 @@
                     <!-- Semaine en cours -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingCurrent">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            <button class="accordion-button d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#collapseCurrent" aria-expanded="true" aria-controls="collapseCurrent">
-                                Événements cette semaine <span class="badge bg-primary ms-2">{{ thisWeek_events|length
-                                    }}</span>
+                                <i class="bi bi-chevron-double-down toggle-icon"></i>
+                                <span class="me-2">Événements cette semaine</span> 
+                                <span class="badge bg-primary">{{ thisWeek_events|length}}</span>
                             </button>
                         </h2>
                         <div id="collapseCurrent" class="accordion-collapse collapse show"
@@ -48,7 +66,7 @@
                                         </div>
                                         <div>
                                             📅 {{ event.start.dateTime | todatetime | format_datetime('%A %d %B %Y') }} |
-                                            🕒 {{ event.start.dateTime | todatetime | format_datetime('%H:%M') }} → {{ event.end.dateTime | todatetime | format_datetime('%H:%M') }}
+                                            🕒 {{ event.start_local | format_datetime('%H:%M') }} → {{ event.end_local | format_datetime('%H:%M') }}
                                         </div>
                                         <div>👤 {{ event.organizer.emailAddress.name }}</div>
                                         <div>📍 {{ event.location.displayName or "Lieu non précisé" }}</div>
@@ -65,11 +83,11 @@
                     <!-- Semaine suivante -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingNext">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            <button class="accordion-button collapsed d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#collapseNext" aria-expanded="false" aria-controls="collapseNext">
-                                Événements semaine prochaine <span class="badge bg-secondary ms-2">{{
-                                    nextWeek_events|length
-                                    }}</span>
+                                <i class="bi bi-chevron-double-down toggle-icon"></i>
+                                <span class="me-2">Événements semaine prochaine</span>    
+                                <span class="badge bg-secondary">{{nextWeek_events|length}}</span>
                             </button>
                         </h2>
                         <div id="collapseNext" class="accordion-collapse collapse" aria-labelledby="headingNext"
@@ -84,7 +102,7 @@
                                         </div>
                                         <div>
                                             📅 {{ event.start.dateTime | todatetime | format_datetime('%A %d %B %Y') }} |
-                                            🕒 {{ event.start.dateTime | todatetime | format_datetime('%H:%M') }} → {{ event.end.dateTime | todatetime | format_datetime('%H:%M') }}
+                                            🕒 {{ event.start_local | format_datetime('%H:%M') }} → {{ event.end_local | format_datetime('%H:%M') }}
                                         </div>
                                         <div>👤 {{ event.organizer.emailAddress.name }}</div>
                                         <div>📍 {{ event.location.displayName or "Lieu non précisé" }}</div>
@@ -101,10 +119,11 @@
                     <!-- long terme -->
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingLongTerm">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            <button class="accordion-button collapsed d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#collapseLongTerm" aria-expanded="false" aria-controls="collapseLongTerm">
-                                Événements long terme <span class="badge bg-secondary ms-2">{{ longterm_events|length
-                                    }}</span>
+                                <i class="bi bi-chevron-double-down toggle-icon"></i>
+                                <span class="me-2">Événements long terme</span>
+                                <span class="badge bg-secondary">{{ longterm_events|length}}</span>
                             </button>
                         </h2>
                         <div id="collapseLongTerm" class="accordion-collapse collapse" aria-labelledby="headingLongTerm"
@@ -119,7 +138,7 @@
                                         </div>
                                         <div>
                                             📅 {{ event.start.dateTime | todatetime | format_datetime('%A %d %B %Y') }} |
-                                            🕒 {{ event.start.dateTime | todatetime | format_datetime('%H:%M') }} → {{ event.end.dateTime | todatetime | format_datetime('%H:%M') }}
+                                            🕒 {{ event.start_local | format_datetime('%H:%M') }} → {{ event.end_local | format_datetime('%H:%M') }}
                                         </div>
                                         <div>👤 {{ event.organizer.emailAddress.name }}</div>
                                         <div>📍 {{ event.location.displayName or "Lieu non précisé" }}</div>
@@ -137,158 +156,14 @@
             </div>
         </div>
 
+        <!-- start right nav bar -->
+        {% include "components/navbar_right.html" %}
+        <!-- end right nav bar -->
+
         
 
     </div>
     <!-- end Main content -->
 </div>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-
-    // Définition des gauges avec un label personnalisé
-    function createGauge(id, title, min, max) {
-        return new JustGage({
-            id: id,
-            value: min,
-            min: min,
-            max: max,
-            title: title,
-            label: "°C",
-            decimals: 1
-        });
-    }
-
-    // Création des gauges
-    let gaugePlancherDepart = createGauge("gaugePlancherDepart", "Départ plancher", 8, 50);
-    let gaugePlancherRetour = createGauge("gaugePlancherRetour", "Retour plancher", 8, 50);
-    let gaugeDepartAlim = createGauge("gaugeDepartAlim", "Alimentation plancher", 7, 70);
-    let gaugeAmbiance = createGauge("gaugeAmbiance", "Ambiance", 7, 40);
-
-
-    function GetArduinoInputs() {
-        let nocache = "&nocache=" + Math.random() * 1000000;
-        let request = new XMLHttpRequest();
-        request.onreadystatechange = function () {
-            if (this.readyState == 4) {
-                if (this.status == 200) {
-                    try {
-                        let data = JSON.parse(this.responseText);
-
-                        if (data.temp_plancher_depart !== undefined) {
-                            document.getElementById("departTemp").innerHTML = data.temp_plancher_depart + " °C";
-                            document.getElementById("retourTemp").innerHTML = data.temp_plancher_retour + " °C";
-                            document.getElementById("alimTemp").innerHTML = data.temp_depart_alim + " °C";
-                            document.getElementById("ambianceTemp").innerHTML = data.temp_ambiance + " °C";
-                            document.getElementById("deltaTemp").innerHTML = data.deltaT + " °C";
-
-                            // Mise à jour des input_ambiance et input_plancher
-                            document.getElementById("input_ambiance").value = data.consigne_ambiance;
-                            document.getElementById("input_plancher").value = data.consigne_plancher;
-
-                            gaugePlancherDepart.refresh(data.temp_plancher_depart);
-                            gaugePlancherRetour.refresh(data.temp_plancher_retour);
-                            gaugeDepartAlim.refresh(data.temp_depart_alim);
-                            gaugeAmbiance.refresh(data.temp_ambiance);
-
-                        }
-
-                        hideError();
-                    } catch (e) {
-                        console.error("Erreur de parsing JSON:", e);
-                        showError("Données invalides reçues de l'Arduino.");
-                    }
-                } else {
-                    showError("L'Arduino ne répond pas. Vérifiez la connexion !");
-                }
-            }
-        };
-
-        request.onerror = function () {
-            showError("Erreur réseau. Impossible de contacter l'Arduino.");
-        };
-
-        request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
-        request.send();
-        setTimeout(GetArduinoInputs, 10000);
-    }
-
-    function showError(message) {
-        let errorToastEl = document.getElementById("errorToast");
-        let errorMessageText = document.getElementById("errorMessageText");
-
-        if (errorToastEl && errorMessageText) {
-            errorMessageText.textContent = message;
-            let errorToast = new bootstrap.Toast(errorToastEl);
-            errorToast.show();
-        }
-    }
-
-    function hideError() {
-        let errorToastEl = document.getElementById("errorToast");
-        if (errorToastEl) {
-            let errorToast = new bootstrap.Toast(errorToastEl);
-            errorToast.hide();
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        GetArduinoInputs();
-
-        var arduinoToastEl = document.getElementById("arduinoToast");
-        var arduinoToast = new bootstrap.Toast(arduinoToastEl, { delay: 5000 });
-
-        fetch("/arduino_status")
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "OK") {
-                    document.getElementById("arduinoStatusText").textContent = data.message;
-                    arduinoToast.show();
-                } else {
-                    showError(data.message);
-                }
-            })
-            .catch(error => {
-                showError("Erreur de connexion à l'Arduino.");
-            });
-    });
-
-    $(document).ready(function () {
-
-        // Lorsqu'un champ est modifié, on récupère la nouvelle consigne et on envoie une requête POST
-        $('#input_ambiance').change(function () {
-            let consigneAmbiance = $(this).val();
-            console.log(`Consigne Ambiance modifiée: ${consigneAmbiance}`);  // Log de débogage
-            sendPostInput('ConsigneAmbiance', consigneAmbiance);
-        });
-
-        $('#input_plancher').change(function () {
-            let consignePlancher = $(this).val();
-            console.log(`Consigne Plancher modifiée: ${consignePlancher}`);  // Log de débogage
-            sendPostInput('ConsignePlancher', consignePlancher);
-        });
-    });
-
-    function sendPostInput(key, value) {
-        let xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://192.168.1.111:7777/set_inputs", true); // L'URL du serveur
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-        // Construire la chaîne de données à envoyer
-        let data = `${key}=${value}`;
-
-        console.log(`Données envoyées : ${data}`);  // Log pour débogage
-
-        // Envoi de la requête
-        xhr.send(data);
-
-        // Log pour débogage
-        xhr.onload = function () {
-            console.log('Réponse du serveur:', xhr.responseText);  // Affiche la réponse du serveur
-        };
-    }
-
-</script>
 {% endblock %}

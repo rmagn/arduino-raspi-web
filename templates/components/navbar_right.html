@@ -1,0 +1,121 @@
+<div class="col-lg-3">
+
+    <div class="col-sm-6 col-lg-12">
+        <div class="card">
+            <!-- Card header START -->
+            <div class="card-header pb-0 border-0">
+                <h5 class="card-title mb-0">Températures</h5>
+            </div>
+            <!-- Card header END -->
+            <!-- Card body START -->
+            <div class="card-body d-flex flex-column justify-content-center align-items-center"
+                style="min-height: 300px;">
+                <style>
+                    .gauge-container {
+                        width: 170px;
+                        height: 120px;
+                        margin: auto;
+                    }
+                </style>
+
+                <div class="text-center mb-4">
+                    <h5>Intérieur</h5>
+                    <div id="gaugeInterieur" class="gauge-container"></div>
+                </div>
+                <div class="text-center">
+                    <h5>Extérieur</h5>
+                    <div id="gaugeExterieur" class="gauge-container"></div>
+                </div>
+            </div>
+
+            <!-- Card body END -->
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    // Définition des gauges avec un label personnalisé
+    function createGauge(id, title, min, max) {
+        return new JustGage({
+            id: id,
+            value: min,
+            min: min,
+            max: max,
+            title: title,
+            label: "°C",
+            decimals: 1
+        });
+    }
+
+    // Création des gauges
+    let gaugeInterieur = createGauge("gaugeInterieur", "Intérieur", 0, 30);
+    let gaugeExterieur = createGauge("gaugeExterieur", "Extérieur", -10, 45);
+
+    function fetchTemperature(url, onSuccess) {
+        let nocache = "?nocache=" + Math.random() * 1000000;
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    try {
+                        let data = JSON.parse(this.responseText);
+                        onSuccess(data);
+                        hideError();
+                    } catch (e) {
+                        console.error("Erreur de parsing JSON:", e);
+                        showError("Données invalides reçues de l'Arduino.");
+                    }
+                } else {
+                    showError("L'Arduino ne répond pas. Vérifiez la connexion !");
+                }
+            }
+        };
+
+        request.onerror = function () {
+            showError("Erreur réseau. Impossible de contacter l'Arduino.");
+        };
+
+        request.open("GET", url + nocache, true);
+        request.send();
+    }
+
+    function GetArduinoInputs() {
+        fetchTemperature("/arduino/proxy_inputs/plancher", (data) => {
+            if (data.temp_ambiance !== undefined) {
+                gaugeInterieur.refresh(data.temp_ambiance);
+            }
+        });
+
+        fetchTemperature("/arduino/proxy_inputs/chaudiere", (data) => {
+            if (data.temp_exterieur !== undefined) {
+                gaugeExterieur.refresh(data.temp_exterieur);
+            }
+        });
+    }
+
+
+    function showError(message) {
+        let errorToastEl = document.getElementById("errorToast");
+        let errorMessageText = document.getElementById("errorMessageText");
+
+        if (errorToastEl && errorMessageText) {
+            errorMessageText.textContent = message;
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.show();
+        }
+    }
+
+    function hideError() {
+        let errorToastEl = document.getElementById("errorToast");
+        if (errorToastEl) {
+            let errorToast = new bootstrap.Toast(errorToastEl);
+            errorToast.hide();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        GetArduinoInputs();
+    });
+</script>

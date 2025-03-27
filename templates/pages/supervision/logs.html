@@ -315,7 +315,7 @@
     });
 
     function GetArduinoInputs() {
-        let nocache = "&nocache=" + Math.random() * 1000000;
+        let nocache = "?nocache=" + Math.random() * 1000000;
         let request = new XMLHttpRequest();
         request.onreadystatechange = function () {
             if (this.readyState == 4) {
@@ -355,12 +355,12 @@
             showError("Erreur réseau. Impossible de contacter l'Arduino.");
         };
 
-        request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
+        request.open("GET", "/arduino/proxy_inputs/plancher" + nocache, true);
         request.send();
     }
 
     function GetArduinoInputs1() {
-        let nocache = "&nocache=" + Math.random() * 1000000;
+        let nocache = "?nocache=" + Math.random() * 1000000;
         let request = new XMLHttpRequest();
         request.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -402,13 +402,13 @@
             showError("Erreur réseau. Impossible de contacter l'Arduino.");
         };
 
-        request.open("GET", "http://192.168.1.111:7777/ajax_inputs" + nocache, true);
+        request.open("GET", "/arduino/proxy_inputs/plancher" + nocache, true);
         request.send();
         setTimeout(GetArduinoInputs1, 10000); // ⏳ Mise à jour toutes les 10 sec
     }
 
     function GetArduinoInputs2() {
-        let nocache = "&nocache=" + Math.random() * 1000000;
+        let nocache = "?nocache=" + Math.random() * 1000000;
         let request = new XMLHttpRequest();
         request.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -451,7 +451,7 @@
             showError("Erreur réseau. Impossible de contacter l'Arduino.");
         };
 
-        request.open("GET", "http://192.168.1.112:7777/ajax_inputs" + nocache, true);
+        request.open("GET", "/arduino/proxy_inputs/chaudiere" + nocache, true);
         request.send();
         setTimeout(GetArduinoInputs2, 10000); // ⏳ Mise à jour toutes les 10 sec
     }

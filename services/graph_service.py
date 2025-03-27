@@ -3,6 +3,7 @@ import base64
 from datetime import datetime 
 from config import app_config as config
 from services.auth_service import auth
+from utils.formater import to_local_datetime
 
 
 
@@ -68,6 +69,11 @@ def get_events_between(calendars, startDateTime, endDateTime):
     
     # Trier les événements par ordre chronologique en utilisant le champ 'start'
     events = sorted(events, key=lambda event: event['start']['dateTime'])
+
+    # Ajouter les versions converties en heure locale
+    for event in events:
+        event["start_local"] = to_local_datetime(event["start"]["dateTime"])
+        event["end_local"] = to_local_datetime(event["end"]["dateTime"])
 
     return events
 

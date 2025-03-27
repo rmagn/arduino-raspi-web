@@ -20,6 +20,11 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 ARDUINO_IP = "http://192.168.1.111:7777/ajax_inputs"
 ARDUINO_IP_CHAUDIERE = "http://192.168.1.112:7777/ajax_inputs"
 
+ARDUINO_IPS = {
+    "chaudiere": "192.168.1.112",
+    "plancher": "192.168.1.111"
+}
+
 load_dotenv()  # Charge les variables d'environnement depuis .env
 
 # Application (client) ID of app registration
@@ -55,8 +60,6 @@ FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
 REDIRECT_HOST = os.getenv("REDIRECT_HOST", "http://localhost:5000")
 REDIRECT_URI = REDIRECT_HOST + REDIRECT_PATH
 
-
-# Vérifie que tout est bien chargé
 # Vérifie que tout est bien chargé
 print(f'####################################################')
 print(f"# ENV_MODE: {ENV_MODE}")

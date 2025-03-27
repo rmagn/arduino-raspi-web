@@ -103,7 +103,7 @@
 
 
     function GetArduinoInputs() {
-        let nocache = "&nocache=" + Math.random() * 1000000;
+        let nocache = "?nocache=" + Math.random() * 1000000;
         let request = new XMLHttpRequest();
         request.onreadystatechange = function () {
             if (this.readyState == 4) {
@@ -137,7 +137,7 @@
             showError("Erreur réseau. Impossible de contacter l'Arduino.");
         };
 
-        request.open("GET", "http://192.168.1.112:7777/ajax_inputs" + nocache, true);
+        request.open("GET", "/arduino/proxy_inputs/chaudiere" + nocache, true);
         request.send();
         setTimeout(GetArduinoInputs, 10000);
     }
