@@ -66,7 +66,7 @@
                                         </div>
                                         <div>
                                             📅 {{ event.start.dateTime | todatetime | format_datetime('%A %d %B %Y') }} |
-                                            🕒 {{ event.start_local | format_datetime('%H:%M') }} → {{ event.end_local | format_datetime('%H:%M') }}
+                                            🕒 {{ event.start.dateTime | todatetime  | format_datetime('%H:%M') }} → {{ event.end.dateTime | todatetime | format_datetime('%H:%M') }}
                                         </div>
                                         <div>👤 {{ event.organizer.emailAddress.name }}</div>
                                         <div>📍 {{ event.location.displayName or "Lieu non précisé" }}</div>
@@ -102,7 +102,7 @@
                                         </div>
                                         <div>
                                             📅 {{ event.start.dateTime | todatetime | format_datetime('%A %d %B %Y') }} |
-                                            🕒 {{ event.start_local | format_datetime('%H:%M') }} → {{ event.end_local | format_datetime('%H:%M') }}
+                                            🕒 {{ event.start.dateTime | todatetime  | format_datetime('%H:%M') }} → {{ event.end.dateTime | todatetime | format_datetime('%H:%M') }}
                                         </div>
                                         <div>👤 {{ event.organizer.emailAddress.name }}</div>
                                         <div>📍 {{ event.location.displayName or "Lieu non précisé" }}</div>
@@ -138,7 +138,7 @@
                                         </div>
                                         <div>
                                             📅 {{ event.start.dateTime | todatetime | format_datetime('%A %d %B %Y') }} |
-                                            🕒 {{ event.start_local | format_datetime('%H:%M') }} → {{ event.end_local | format_datetime('%H:%M') }}
+                                            🕒 {{ event.start.dateTime | todatetime  | format_datetime('%H:%M') }} → {{ event.end.dateTime | todatetime | format_datetime('%H:%M') }}
                                         </div>
                                         <div>👤 {{ event.organizer.emailAddress.name }}</div>
                                         <div>📍 {{ event.location.displayName or "Lieu non précisé" }}</div>

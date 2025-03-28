@@ -28,9 +28,11 @@ def logs():
     return render_template("pages/supervision/logs.html")
 
 @pages_bp.route("/SupervisonPlancher")
+@login_required
 def SupervisonPlancher():
     return render_template("pages/supervision/Plancher.html")
 
 @pages_bp.route("/SupervisionLocalChaudiere")
+@login_required
 def SupervisionLocalChaudiere():
     return render_template("pages/supervision/LocalChaudiere.html")

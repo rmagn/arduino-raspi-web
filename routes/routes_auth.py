@@ -10,7 +10,7 @@ auth_bp = Blueprint("auth_bp", __name__)
 # 🔑 Page de connexion Microsoft
 @auth_bp.route("/login")
 def login():
-    print("🧭 URI redirection (config.REDIRECT_URI):", config.REDIRECT_URI)
+    # print("🧭 URI redirection (config.REDIRECT_URI):", config.REDIRECT_URI)
     return render_template("auth/login.html", version=identity.__version__, **auth.log_in(
         scopes=config.SCOPE,
         redirect_uri=config.REDIRECT_URI  # <-- Utilise celui défini dans .env
@@ -21,10 +21,10 @@ def login():
 def auth_response():
     result = auth.complete_log_in(request.args)
     if "error" in result:
-        print("❌ Erreur d'authentification :", result)
+        # print("❌ Erreur d'authentification :", result)
         return render_template("auth/auth_error.html", result=result)
     
-    print("✅ Authentification réussie ! Redirection vers la home.")
+    # print("✅ Authentification réussie ! Redirection vers la home.")
     return redirect(url_for("pages.home"))
 
 # 🔓 Déconnexion

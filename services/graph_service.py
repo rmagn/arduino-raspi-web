@@ -30,7 +30,7 @@ def get_calendar_shared_calendars():
 
 
 def get_events_between(calendars, startDateTime, endDateTime): 
-    print("📅 Récupération des événements de la semaine")
+    # print("📅 Récupération des événements de la semaine")
 
     token = auth.get_token_for_user(config.SCOPE)
     if not token or "access_token" not in token:
@@ -39,7 +39,7 @@ def get_events_between(calendars, startDateTime, endDateTime):
 
     headers = {
         "Authorization": f"Bearer {token['access_token']}",
-        "Prefer": 'outlook.timezone="UTC"'
+        "Prefer": 'outlook.timezone="Europe/Paris"'
     }
     
     params = {
@@ -61,7 +61,7 @@ def get_events_between(calendars, startDateTime, endDateTime):
         )
 
         if response.status_code == 200:
-            print("✅ Récupération des événements OK")
+            # print("✅ Récupération des événements OK")
             events.extend(response.json().get("value", []))
         else:
             print(f"❌ Erreur lors de la récupération des événements : {response.status_code} - {response.text}")
@@ -71,9 +71,9 @@ def get_events_between(calendars, startDateTime, endDateTime):
     events = sorted(events, key=lambda event: event['start']['dateTime'])
 
     # Ajouter les versions converties en heure locale
-    for event in events:
-        event["start_local"] = to_local_datetime(event["start"]["dateTime"])
-        event["end_local"] = to_local_datetime(event["end"]["dateTime"])
+    # for event in events:
+    #     event["start_local"] = to_local_datetime(event["start"]["dateTime"])
+    #     event["end_local"] = to_local_datetime(event["end"]["dateTime"])
 
     return events
 
