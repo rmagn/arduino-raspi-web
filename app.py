@@ -5,8 +5,10 @@ from routes.routes_logger import logger_bp
 from routes.routes_pages import pages_bp
 from routes.routes_auth import auth_bp
 from routes.routes_arduino import arduino_bp
+from routes.routes_meteo import meteo_bp
 from config import app_config as config
 from services.auth_service import auth
+from services.scheduler import start_scheduler
 from utils.formater import todatetime, format_datetime
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -53,11 +55,14 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(logger_bp)
 app.register_blueprint(pages_bp)
 app.register_blueprint(arduino_bp, url_prefix="/arduino")
+app.register_blueprint(meteo_bp)
 
 # print("📚 Liste des routes enregistrées :")
 # for rule in app.url_map.iter_rules():
 #     print(rule)
 
+# 📌 Lancer le scheduler pour les prévisions météo
+start_scheduler() 
 
 # 📌 Lancer Flask
 if __name__ == '__main__':

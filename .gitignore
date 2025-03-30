@@ -27,3 +27,4 @@ venv/*
 
 #session Flask
 flask_session/*
+DEV_temperature_logs.db
