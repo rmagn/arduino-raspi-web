@@ -16,67 +16,74 @@
     }
 </style>
 
-<div class="card shadow-sm  p-4">
-    <h2 class="text-secondary">Calendrier</h2>
+<div class="card">
+    <!-- Card header START -->
+    <div class="card-header pb-0 border-0">
+        <h5 class="card-title text-center">Calendrier</h5>
+    </div>
+    <!-- Card header END -->
 
-    <div class="accordion mt-4" id="calendarAccordion">
-        <!-- Semaine en cours -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingCurrent">
-                <button class="accordion-button d-flex justify-content-between align-items-center" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#collapseCurrent" aria-expanded="true"
-                    aria-controls="collapseCurrent">
-                    <i class="bi bi-chevron-double-down toggle-icon"></i>
-                    <span class="me-2">Événements cette semaine</span>
-                    <span class="badge bg-primary" id="badge-thisweek">-</span>
-                </button>
-            </h2>
-            <div id="collapseCurrent" class="accordion-collapse collapse show" aria-labelledby="headingCurrent"
-                data-bs-parent="#accordionCalendars">
-                <div class="accordion-body" data-periode="thisweek">
-                    <div class="spinner-border text-primary" role="status"></div>
+    <!-- Card body START -->
+    <div class="card-body pt-0">
+        <div class="accordion mt-4" id="calendarAccordion">
+            <!-- Semaine en cours -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingCurrent">
+                    <button class="accordion-button d-flex justify-content-between align-items-center" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapseCurrent" aria-expanded="true"
+                        aria-controls="collapseCurrent">
+                        <i class="bi bi-chevron-double-down toggle-icon"></i>
+                        <span class="me-2">Événements cette semaine</span>
+                        <span class="badge bg-primary" id="badge-thisweek">-</span>
+                    </button>
+                </h2>
+                <div id="collapseCurrent" class="accordion-collapse collapse show" aria-labelledby="headingCurrent"
+                    data-bs-parent="#accordionCalendars">
+                    <div class="accordion-body" data-periode="thisweek">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Semaine suivante -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingNext">
-                <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
-                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseNext" aria-expanded="false"
-                    aria-controls="collapseNext">
-                    <i class="bi bi-chevron-double-down toggle-icon"></i>
-                    <span class="me-2">Événements semaine prochaine</span>
-                    <span class="badge bg-secondary" id="badge-nextweek">–</span>
-                </button>
-            </h2>
-            <div id="collapseNext" class="accordion-collapse collapse" aria-labelledby="headingNext"
-                data-bs-parent="#accordionCalendars">
-                <div class="accordion-body" data-periode="nextweek">
-                    <div class="spinner-border text-primary" role="status"></div>
+            <!-- Semaine suivante -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingNext">
+                    <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseNext" aria-expanded="false"
+                        aria-controls="collapseNext">
+                        <i class="bi bi-chevron-double-down toggle-icon"></i>
+                        <span class="me-2">Événements semaine prochaine</span>
+                        <span class="badge bg-secondary" id="badge-nextweek">–</span>
+                    </button>
+                </h2>
+                <div id="collapseNext" class="accordion-collapse collapse" aria-labelledby="headingNext"
+                    data-bs-parent="#accordionCalendars">
+                    <div class="accordion-body" data-periode="nextweek">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- long terme -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingLongTerm">
-                <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
-                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseLongTerm" aria-expanded="false"
-                    aria-controls="collapseLongTerm">
-                    <i class="bi bi-chevron-double-down toggle-icon"></i>
-                    <span class="me-2">Événements long terme</span>
-                    <span class="badge bg-secondary" id="badge-longterm">–</span>
-                </button>
-            </h2>
-            <div id="collapseLongTerm" class="accordion-collapse collapse" aria-labelledby="headingLongTerm"
-                data-bs-parent="#accordionCalendars">
-                <div class="accordion-body" data-periode="longterm">
-                    <div class="spinner-border text-primary" role="status"></div>
+            <!-- long terme -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingLongTerm">
+                    <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseLongTerm" aria-expanded="false"
+                        aria-controls="collapseLongTerm">
+                        <i class="bi bi-chevron-double-down toggle-icon"></i>
+                        <span class="me-2">Événements long terme</span>
+                        <span class="badge bg-secondary" id="badge-longterm">–</span>
+                    </button>
+                </h2>
+                <div id="collapseLongTerm" class="accordion-collapse collapse" aria-labelledby="headingLongTerm"
+                    data-bs-parent="#accordionCalendars">
+                    <div class="accordion-body" data-periode="longterm">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
 </div>
 

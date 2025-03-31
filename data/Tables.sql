@@ -1,12 +1,19 @@
-import sqlite3
+CREATE TABLE nouvelle_table (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  timestamp TIMESTAMP,
+  arduino_id INT,
+  Value0 INT,
+  Value1 INT,
+  Value2 INT,
+  Value3 INT,
+  Value4 INT,
+  Value5 INT,
+  Value6 INT,
+  Value7 INT,
+  Value8 INT,
+  Value9 INT
+);
 
-# Connexion à la base existante
-db_path = "DEV_temperature_logs.db"  # ou le chemin complet si ailleurs
-conn = sqlite3.connect(db_path)
-cursor = conn.cursor()
-
-# Création de la nouvelle table
-cursor.execute("""
 CREATE TABLE meteo_previsions (
     localite_id TEXT,
     date_heure_utc TEXT,
@@ -27,6 +34,7 @@ CREATE TABLE meteo_previsions (
     coucher_soleil TEXT,
     PRIMARY KEY (localite_id, date_heure_utc)
 );
+
 CREATE TABLE IF NOT EXISTS localites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nom TEXT NOT NULL,
@@ -35,8 +43,14 @@ CREATE TABLE IF NOT EXISTS localites (
     longitude REAL NOT NULL,
     UNIQUE(nom, code_postal)
 );
-""")
 
-conn.commit()
-conn.close()
-print("✅ Table 'meteo_previsions' créée avec succès.")
+CREATE TABLE IF NOT EXISTS users (
+    email TEXT PRIMARY KEY,
+    first_name TEXT,
+    last_name TEXT,
+    birthdate TEXT,
+    role TEXT
+);
+INSERT INTO users (email, first_name, last_name, birthdate, role) VALUES 
+('romain_magnan@hotmail.com', 'Romain', 'MAGNAN', '1983-07-01T00:00:00Z','administrateur'),
+('marie_aubert26@hotmail.com', 'Marie', 'MAGNAN', '1983-09-11T00:00:00Z','utilisateur');

@@ -11,6 +11,14 @@ def get_db():
 
 bufferLog = []
 
+def get_user_by_email(email):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE email=?", (email,))
+    user = cursor.fetchone()
+    db.close()
+    return user
+
 def saveLog_to_database(data):
     """Enregistrement des données dans un buffer et insertion dans la base SQLite lorsque le buffer est plein"""
     global bufferLog
@@ -75,7 +83,7 @@ def get_Ephemeris():
     """Récupère les éphémérides (lever et coucher de soleil)"""
     conn = get_db()
     cur = conn.cursor()
-    today_date = datetime.now(dt_timezone.utc).strftime("%Y-%m-%dT12:00:00Z")  # Use datetime.timezone
+    today_date = datetime.now(dt_timezone.utc).strftime("%Y-%m-%dT%H:00:00Z")  # Use datetime.timezone
     cur.execute("""
         SELECT lever_soleil, coucher_soleil
         FROM meteo_previsions        
