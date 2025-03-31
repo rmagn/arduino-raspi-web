@@ -1,0 +1,139 @@
+<!-- Section Calendrier Outlook -->
+<style>
+    /* Supprimer la flèche Bootstrap par défaut */
+    .accordion-button::after {
+        display: none !important;
+    }
+
+    /* Par défaut : flèche vers le bas */
+    .accordion-button .toggle-icon {
+        transition: transform 0.3s ease;
+    }
+
+    /* Si le panneau est ouvert : faire pivoter la flèche */
+    .accordion-button:not(.collapsed) .toggle-icon {
+        transform: rotate(180deg);
+    }
+</style>
+
+<div class="card shadow-sm  p-4">
+    <h2 class="text-secondary">Calendrier</h2>
+
+    <div class="accordion mt-4" id="calendarAccordion">
+        <!-- Semaine en cours -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingCurrent">
+                <button class="accordion-button d-flex justify-content-between align-items-center" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseCurrent" aria-expanded="true"
+                    aria-controls="collapseCurrent">
+                    <i class="bi bi-chevron-double-down toggle-icon"></i>
+                    <span class="me-2">Événements cette semaine</span>
+                    <span class="badge bg-primary" id="badge-thisweek">-</span>
+                </button>
+            </h2>
+            <div id="collapseCurrent" class="accordion-collapse collapse show" aria-labelledby="headingCurrent"
+                data-bs-parent="#accordionCalendars">
+                <div class="accordion-body" data-periode="thisweek">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semaine suivante -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingNext">
+                <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseNext" aria-expanded="false"
+                    aria-controls="collapseNext">
+                    <i class="bi bi-chevron-double-down toggle-icon"></i>
+                    <span class="me-2">Événements semaine prochaine</span>
+                    <span class="badge bg-secondary" id="badge-nextweek">–</span>
+                </button>
+            </h2>
+            <div id="collapseNext" class="accordion-collapse collapse" aria-labelledby="headingNext"
+                data-bs-parent="#accordionCalendars">
+                <div class="accordion-body" data-periode="nextweek">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- long terme -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingLongTerm">
+                <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseLongTerm" aria-expanded="false"
+                    aria-controls="collapseLongTerm">
+                    <i class="bi bi-chevron-double-down toggle-icon"></i>
+                    <span class="me-2">Événements long terme</span>
+                    <span class="badge bg-secondary" id="badge-longterm">–</span>
+                </button>
+            </h2>
+            <div id="collapseLongTerm" class="accordion-collapse collapse" aria-labelledby="headingLongTerm"
+                data-bs-parent="#accordionCalendars">
+                <div class="accordion-body" data-periode="longterm">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function formatDateFr(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleDateString("fr-FR", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric"
+        });
+    }
+
+    function formatTimeFr(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString("fr-FR", {
+            hour: "2-digit", minute: "2-digit"
+        });
+    }
+
+    function renderEvents(events, container) {
+        if (!events || events.length === 0) {
+            container.innerHTML = "<p>Aucun événement</p>";
+            return;
+        }
+
+        const list = events.map(event => `
+            <div class="mb-3 border rounded p-3 bg-light">
+                <div><strong>${event.subject}</strong></div>
+                <div>📅 ${formatDateFr(event.start.dateTime)} |
+                     🕒 ${formatTimeFr(event.start.dateTime)} → ${formatTimeFr(event.end.dateTime)}</div>
+                <div>👤 ${event.organizer.emailAddress.name}</div>
+                <div>📍 ${event.location?.displayName || "Lieu non précisé"}</div>
+            </div>
+        `).join("");
+
+        container.innerHTML = list;
+    }
+
+    function fetchAndDisplayEvents(periode) {
+        const container = document.querySelector(`.accordion-body[data-periode="${periode}"]`);
+        const badge = document.getElementById(`badge-${periode}`);
+
+        fetch(`/api/calendar_events?periode=${periode}`)
+            .then(res => res.json())
+            .then(events => {
+                renderEvents(events, container);
+                if (badge) badge.innerText = events.length;
+            })
+            .catch(err => {
+                console.error(`Erreur chargement événements ${periode} :`, err);
+                container.innerHTML = "<p class='text-danger'>Erreur de chargement</p>";
+                if (badge) badge.innerText = "!";
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        fetchAndDisplayEvents("thisweek");
+        fetchAndDisplayEvents("nextweek");
+        fetchAndDisplayEvents("longterm");
+    });
+</script>

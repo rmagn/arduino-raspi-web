@@ -7,8 +7,8 @@ cursor = conn.cursor()
 
 # Création de la nouvelle table
 cursor.execute("""
-CREATE TABLE IF NOT EXIST meteo_previsions (
-    localite TEXT,
+CREATE TABLE meteo_previsions (
+    localite_id TEXT,
     date_heure_utc TEXT,
     wind_speed REAL,
     wind_dir REAL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXIST meteo_previsions (
     uv REAL,
     lever_soleil TEXT,
     coucher_soleil TEXT,
-    PRIMARY KEY (localite, date_heure_utc)
+    PRIMARY KEY (localite_id, date_heure_utc)
 );
 CREATE TABLE IF NOT EXISTS localites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

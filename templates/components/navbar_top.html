@@ -2,9 +2,9 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <button class="btn btn-primary icon-md text-center" style="height: 40px;width: 40px;">                   
-                        <i class="bi bi-house-heart-fill"></i>                
-                </button>            
+                <button class="btn btn-primary icon-md text-center" style="height: 40px;width: 40px;">
+                    <i class="bi bi-house-heart-fill"></i>
+                </button>
             </a>
             <button class="navbar-toggler ms-auto icon-md btn btn-light p-0" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false"
@@ -21,7 +21,8 @@
                     <a class="nav-link btn icon-md p-0" href="#" id="profileDropdown" role="button"
                         data-bs-auto-close="outside" data-bs-display="static" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                        <img class="avatar-navbar rounded-circle" src="{{ user_photo or url_for('static', filename='images/default-avatar.jpg') }}"
+                        <img class="avatar-navbar rounded-circle" id="userAvatarNavbar"
+                            src="{{ url_for('static', filename='images/default-avatar.jpg') }}"
                             alt="Avatar utilisateur">
                     </a>
                     <ul class="dropdown-menu dropdown-animation dropdown-menu-end pt-3 small me-md-n3"
@@ -31,8 +32,9 @@
                             <div class="d-flex align-items-center position-relative">
                                 <!-- Avatar -->
                                 <div class="avatar me-3">
-                                    <img class="avatar-img rounded-circle"
-                                        src="{{ user_photo or url_for('static', filename='images/default-avatar.jpg') }}" alt="avatar">
+                                    <img class="avatar-img rounded-circle" id="userAvatarDropdown"
+                                        src="{{ url_for('static', filename='images/default-avatar.jpg') }}"
+                                        alt="avatar">
                                 </div>
                                 <div>
                                     <a class="h6 stretched-link" href="#">{{ current_user.get("name") or
@@ -87,4 +89,22 @@
         </div>
     </nav>
 </header>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch("/api/user_photo")
+            .then(response => response.json())
+            .then(data => {
+                if (data.photo) {
+                    // La chaîne contient déjà "data:image/jpeg;base64,"
+                    document.getElementById("userAvatarNavbar").src = data.photo;
+                    document.getElementById("userAvatarDropdown").src = data.photo;
+                }
+            })
+            .catch(error => {
+                console.error("Erreur lors du chargement de la photo :", error);
+            });
+    });
+</script>
+
 <!-- **************** MAIN CONTENT START **************** -->

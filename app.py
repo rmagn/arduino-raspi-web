@@ -6,6 +6,8 @@ from routes.routes_pages import pages_bp
 from routes.routes_auth import auth_bp
 from routes.routes_arduino import arduino_bp
 from routes.routes_meteo import meteo_bp
+from routes.routes_api_user import api_user
+from routes.routes_api_calendar import api_calendar
 from config import app_config as config
 from services.auth_service import auth
 from services.scheduler import start_scheduler
@@ -56,6 +58,8 @@ app.register_blueprint(logger_bp)
 app.register_blueprint(pages_bp)
 app.register_blueprint(arduino_bp, url_prefix="/arduino")
 app.register_blueprint(meteo_bp)
+app.register_blueprint(api_user)
+app.register_blueprint(api_calendar)
 
 # print("📚 Liste des routes enregistrées :")
 # for rule in app.url_map.iter_rules():
