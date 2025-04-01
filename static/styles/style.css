@@ -105,6 +105,19 @@
 }
 
 @media (max-width: 768px) {
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .modal-dialog {
+        margin: 1rem auto;
+    }
+
     #controlSchema { width: 600px; }
 
     #btnCirculateur { top: 51%; left: 9%; }
@@ -129,3 +142,7 @@
 }
 
 
+input[readonly] {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+}

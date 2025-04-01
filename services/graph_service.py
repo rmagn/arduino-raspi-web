@@ -70,8 +70,6 @@ def get_events_between(calendars, startDateTime, endDateTime):
     events = sorted(events, key=lambda event: event['start']['dateTime'])
 
     return events
-
-    
     
 def get_user_photo():
     """

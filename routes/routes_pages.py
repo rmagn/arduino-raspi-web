@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
-from utils.decorators import login_required
-from utils.formater import get_week_bounds
-from services.graph_service import  get_events_between, get_calendar_shared_calendars
+from utils.decorators import login_required, role_required
+import services.users_service as users_service
+from services.users_service import get_logged_user
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -24,3 +24,4 @@ def SupervisonPlancher():
 @login_required
 def SupervisionLocalChaudiere():
     return render_template("pages/supervision/LocalChaudiere.html")
+

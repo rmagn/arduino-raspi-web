@@ -4,13 +4,20 @@ import os
 # 🔹 Mode de l’environnement
 ENV_MODE = os.getenv("ENV_MODE", "DEV")
 
-# 🔹 Configuration des chemins et fichiers selon le mode
+# 🔹 Dossiers du projet (restent relatifs)
+BASE_DIR = "."
 if ENV_MODE == "PROD":
-    DATABASE = '/app/data/temperature_logs.db'
-    BASE_DIR = "/app"
+    DATABASE = './data/temperature_logs.db'
 else:
     DATABASE = './data/DEV_temperature_logs.db'
-    BASE_DIR = "."
+
+# # 🔹 Configuration des chemins et fichiers selon le mode
+# if ENV_MODE == "PROD":
+#     DATABASE = '/app/data/temperature_logs.db'
+#     BASE_DIR = "/app"
+# else:
+#     DATABASE = './data/DEV_temperature_logs.db'
+#     BASE_DIR = "."
 
 # 📂 Dossiers pour Flask
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")

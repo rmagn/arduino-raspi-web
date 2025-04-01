@@ -51,3 +51,14 @@ def get_week_bounds(offset_weeks=0):
         end_of_week = start_of_week + timedelta(weeks=10)
 
     return start_of_week, end_of_week
+
+def format_date_fr(value):
+    """
+    Formatte une date UTC (str) en une date locale (Europe/Paris) au format "dd/mm/yyyy"
+    :param value: date UTC (str) ou datetime Python
+    :return: str
+    """
+    from datetime import datetime
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value.replace('Z', ''))
+    return value.strftime("%d/%m/%Y")
