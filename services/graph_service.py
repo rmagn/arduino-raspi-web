@@ -27,7 +27,6 @@ def get_calendar_shared_calendars():
         print(f"❌ Erreur lors de la récupération des calendriers : {response.status_code}")
         return []
 
-
 def get_events_between(calendars, startDateTime, endDateTime): 
     # print("📅 Récupération des événements de la semaine")
 
@@ -60,8 +59,13 @@ def get_events_between(calendars, startDateTime, endDateTime):
         )
 
         if response.status_code == 200:
-            # print("✅ Récupération des événements OK")
-            events.extend(response.json().get("value", []))
+            events_batch = response.json().get("value", [])
+
+            # Ajouter le calendarId à chaque événement
+            for event in events_batch:
+                event["calendarId"] = calendar
+
+            events.extend(events_batch)
         else:
             print(f"❌ Erreur lors de la récupération des événements : {response.status_code} - {response.text}")
             return []
@@ -102,3 +106,98 @@ def get_user_photo():
     except Exception as e:
         print("❌ Exception :", str(e))
         return None
+
+def get_calendar_list():
+    """
+    Retourne une liste de calendriers avec leur id et nom pour affichage dans un select.
+    """
+    token = auth.get_token_for_user(config.SCOPE)
+    if not token or "access_token" not in token:
+        print("❌ Token manquant pour chercher les calendriers")       
+        return []
+
+    headers = {
+        "Authorization": f"Bearer {token['access_token']}"
+    }
+
+    response = requests.get("https://graph.microsoft.com/v1.0/me/calendars", headers=headers)
+
+    if response.status_code == 200:
+        calendars = response.json().get("value", [])
+        return [
+            {"id": calendar["id"], "name": calendar["name"]}
+            for calendar in calendars
+        ]
+    else:
+        print(f"❌ Erreur récupération calendriers : {response.status_code}")
+        return []
+
+
+def create_or_update_event(calendar_id, data):
+    """
+    Crée ou met à jour un événement dans le calendrier spécifié.
+    """
+    token = auth.get_token_for_user(config.SCOPE)
+    if not token or "access_token" not in token:
+        print("❌ Token manquant")
+        return {"success": False, "message": "Token manquant"}
+
+    headers = {
+        "Authorization": f"Bearer {token['access_token']}",
+        "Content-Type": "application/json"
+    }
+
+    event_payload = {
+        "subject": data.get("subject", ""),
+        "start": {
+            "dateTime": data.get("start"),
+            "timeZone": "Europe/Paris"
+        },
+        "end": {
+            "dateTime": data.get("end"),
+            "timeZone": "Europe/Paris"
+        },
+        "location": {
+            "displayName": data.get("location", "")
+        }
+    }
+
+    if data.get("id"):  # Édition
+        url = f"https://graph.microsoft.com/v1.0/me/calendars/{calendar_id}/events/{data['id']}"
+        response = requests.patch(url, headers=headers, json=event_payload)
+        if response.status_code == 200:
+            return {"success": True, "message": "Événement mis à jour"}
+    else:  # Création
+        url = f"https://graph.microsoft.com/v1.0/me/calendars/{calendar_id}/events"
+        response = requests.post(url, headers=headers, json=event_payload)
+        if response.status_code == 201:
+            created_event = response.json()
+            return {
+                "success": True,
+                "message": "Événement créé",
+                "id": created_event.get("id")  # 🔁 très utile pour focus/animation côté JS
+            }
+
+    print(f"❌ Erreur Graph: {response.status_code} - {response.text}")
+    return {"success": False, "message": "Erreur Graph lors de la création ou mise à jour"}
+
+def delete_event(calendar_id, event_id):
+    """
+    Supprime un événement donné dans le calendrier.
+    """
+    token = auth.get_token_for_user(config.SCOPE)
+    if not token or "access_token" not in token:
+        return {"success": False, "message": "Token manquant"}
+
+    headers = {
+        "Authorization": f"Bearer {token['access_token']}"
+    }
+
+    url = f"https://graph.microsoft.com/v1.0/me/calendars/{calendar_id}/events/{event_id}"
+    response = requests.delete(url, headers=headers)
+
+    if response.status_code == 204:
+        return {"success": True, "message": "Événement supprimé"}
+    else:
+        print(f"❌ Erreur suppression Graph: {response.status_code} - {response.text}")
+        return {"success": False, "message": "Erreur lors de la suppression"}

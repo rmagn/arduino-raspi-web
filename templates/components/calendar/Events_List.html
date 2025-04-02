@@ -14,6 +14,21 @@
     .accordion-button:not(.collapsed) .toggle-icon {
         transform: rotate(180deg);
     }
+
+    @keyframes flashHighlight {
+        from {
+            background-color: #d1e7dd;
+            /* vert pastel */
+        }
+
+        to {
+            background-color: transparent;
+        }
+    }
+
+    .flash-update {
+        animation: flashHighlight 2s ease-in-out;
+    }
 </style>
 
 <div class="card">
@@ -23,9 +38,16 @@
     </div>
     <!-- Card header END -->
 
+    <div class="d-flex justify-content-start m-4">
+        <button class="btn btn-sm btn-primary" onclick="openCreateEventModal()">
+            <i class="bi bi-plus-circle me-1"></i> Ajouter un événement
+        </button>
+    </div>
+
+
     <!-- Card body START -->
     <div class="card-body pt-0">
-        <div class="accordion mt-4" id="calendarAccordion">
+        <div class="accordion" id="calendarAccordion">
             <!-- Semaine en cours -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingCurrent">
@@ -87,7 +109,62 @@
     </div>
 </div>
 
+<!-- Modal Create/Edit -->
+<div class="modal fade" id="modalEvent" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" id="eventForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEventTitle">Créer un événement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% include "components/calendar/event_form_fields.html" %}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="modalDeleteEvent" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Supprimer un événement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <p>Voulez-vous vraiment supprimer cet événement ?</p>
+                <p><strong id="deleteEventTitle"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteEventBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <script>
+    function formatDateFr(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleDateString("fr-FR", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric"
+        });
+    }
+
+    function formatTimeFr(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString("fr-FR", {
+            hour: "2-digit", minute: "2-digit"
+        });
+    }
+
     function formatDateFr(isoString) {
         const date = new Date(isoString);
         return date.toLocaleDateString("fr-FR", {
@@ -108,17 +185,52 @@
             return;
         }
 
-        const list = events.map(event => `
-            <div class="mb-3 border rounded p-3 bg-light">
+        const list = events.map(event => {
+            const safeSubject = (event.subject || "").replace(/"/g, "&quot;");
+            const safeLocation = (event.location?.displayName || "").replace(/"/g, "&quot;");
+
+            return `
+            <div class="mb-3 border rounded p-3 bg-light position-relative" data-event-id="${event.id}">
+                <div class="position-absolute top-0 end-0 m-2">
+                    <button class="btn btn-sm btn-link btn-edit-event" title="Modifier"
+                            data-id="${event.id}"
+                            data-subject="${safeSubject}"
+                            data-location="${safeLocation}"
+                            data-start="${event.start.dateTime}"
+                            data-end="${event.end.dateTime}"
+                            data-calendar="${event.calendarId}"
+                            onclick="openEditEventModalFromButton(this)">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link btn-delete-event ms-1" title="Supprimer"
+                            onclick='openDeleteEventModal("${event.id}", "${event.calendarId}", "${safeSubject}")'>
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
                 <div><strong>${event.subject}</strong></div>
                 <div>📅 ${formatDateFr(event.start.dateTime)} |
                      🕒 ${formatTimeFr(event.start.dateTime)} → ${formatTimeFr(event.end.dateTime)}</div>
-                <div>👤 ${event.organizer.emailAddress.name}</div>
+                <div>👤 ${event.organizer?.emailAddress?.name || "?"}</div>
                 <div>📍 ${event.location?.displayName || "Lieu non précisé"}</div>
             </div>
-        `).join("");
+            `;
+        }).join("");
 
         container.innerHTML = list;
+    }
+
+    async function openEditEventModalFromButton(btn) {
+        const dataset = btn.dataset;
+        const event = {
+            id: dataset.id,
+            subject: dataset.subject,
+            location: { displayName: dataset.location },
+            start: { dateTime: dataset.start },
+            end: { dateTime: dataset.end },
+            calendarId: dataset.calendar
+        };
+
+        await openEditEventModal(event);
     }
 
     function fetchAndDisplayEvents(periode) {
@@ -138,9 +250,272 @@
             });
     }
 
+    // Appel des événements à chaque chargement de la page
     document.addEventListener("DOMContentLoaded", () => {
         fetchAndDisplayEvents("thisweek");
         fetchAndDisplayEvents("nextweek");
         fetchAndDisplayEvents("longterm");
     });
+
+    async function loadCalendarsSelect() {
+        try {
+            const response = await fetch("/api/calendar_list");
+            const calendars = await response.json();
+
+            const select = document.getElementById("calendar_id");
+            select.innerHTML = ""; // vide les anciennes options
+
+            calendars.forEach(cal => {
+                const option = document.createElement("option");
+                option.value = cal.id;
+                option.textContent = cal.name;
+                select.appendChild(option);
+            });
+
+            // Facultatif : sélectionner automatiquement le premier calendrier (calendrier principal)
+            if (calendars.length > 0) {
+                select.value = calendars[0].id;
+            }
+        } catch (err) {
+            console.error("❌ Erreur lors du chargement des calendriers", err);
+            const select = document.getElementById("calendar_id");
+            select.innerHTML = `<option disabled>Erreur de chargement</option>`;
+        }
+    }
+
+    function openCreateEventModal() {
+        const form = document.getElementById("eventForm");
+        form.reset();
+        document.getElementById("modalEventTitle").innerText = "Créer un événement";
+        form.querySelector("#event_id").value = "";
+
+        // Activer le champ de calendrier
+        form.querySelector("#calendar_id").removeAttribute("disabled");
+        form.querySelector("#calendar_id_hidden").value = "";
+
+        applyDurationPreset();
+
+        // Charger les calendriers
+        loadCalendarsSelect().then(() => {
+            const modal = new bootstrap.Modal(document.getElementById("modalEvent"));
+            modal.show();
+        });
+    }
+
+    async function openEditEventModal(event) {
+        const form = document.getElementById("eventForm");
+        form.reset(); // pour éviter les valeurs précédentes
+
+        document.getElementById("modalEventTitle").innerText = "Modifier l’événement";
+
+        // Chargement des calendriers AVANT de tenter la sélection
+        await loadCalendarsSelect();
+
+        form.querySelector("#event_id").value = event.id || "";
+        form.querySelector("#subject").value = event.subject || "";
+        form.querySelector("#location").value = event.location?.displayName || "";
+
+        const start = new Date(event.start?.dateTime);
+        const end = new Date(event.end?.dateTime);
+        form.querySelector("#start").value = scripts.formatForDatetimeLocal(event.start.dateTime);
+        form.querySelector("#end").value = scripts.formatForDatetimeLocal(event.end.dateTime);
+
+        const calendarId = event.calendarId || event.calendar_id;
+        const select = form.querySelector("#calendar_id");
+        const hiddenInput = form.querySelector("#calendar_id_hidden");
+
+        if (calendarId) {
+            const option = Array.from(select.options).find(opt => opt.value === calendarId);
+            if (option) {
+                select.value = calendarId;
+            }
+            // ✅ Copie la valeur vers le champ hidden pour garantir l'envoi
+            if (hiddenInput) {
+                hiddenInput.value = calendarId;
+            }
+        }
+
+        select.setAttribute("disabled", true);
+
+        const modal = new bootstrap.Modal(document.getElementById("modalEvent"));
+        modal.show();
+    }
+
+    document.getElementById("eventForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const submitButton = form.querySelector("button[type='submit']");
+
+        submitButton.disabled = true;
+        const originalContent = submitButton.innerHTML;
+        submitButton.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Enregistrement…`;
+
+        const selectCalendar = form.querySelector("#calendar_id");
+        const hiddenCalendar = form.querySelector("#calendar_id_hidden");
+        if (!selectCalendar.disabled && hiddenCalendar) {
+            hiddenCalendar.value = selectCalendar.value;
+        }
+
+        try {
+            const data = new FormData(form);
+            const payload = Object.fromEntries(data.entries());
+
+            const response = await fetch("/api/calendar/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showToast(result.message || "Événement enregistré", "success");
+
+                if (document.activeElement) document.activeElement.blur(); // ✅ fix Bootstrap
+                bootstrap.Modal.getInstance(document.getElementById("modalEvent")).hide();
+
+                setTimeout(() => {
+                    const eventId = payload.id || result.id;
+                    const selectors = [
+                        { periode: "thisweek", badge: "#badge-thisweek" },
+                        { periode: "nextweek", badge: "#badge-nextweek" },
+                        { periode: "longterm", badge: "#badge-longterm" }
+                    ];
+
+                    for (const { periode } of selectors) {
+                        const container = document.querySelector(`.accordion-body[data-periode="${periode}"]`);
+                        const card = container.querySelector(`[data-event-id="${eventId}"]`);
+                        if (card) {
+                            const collapse = container.closest(".accordion-collapse");
+                            const bsCollapse = new bootstrap.Collapse(collapse, { toggle: false });
+                            bsCollapse.show();
+
+                            card.classList.add("flash-update");
+                            card.scrollIntoView({ behavior: "smooth", block: "center" });
+                            setTimeout(() => card.classList.remove("flash-update"), 2500);
+                            break;
+                        }
+                    }
+                }, 500);
+
+                fetchAndDisplayEvents("thisweek");
+                fetchAndDisplayEvents("nextweek");
+                fetchAndDisplayEvents("longterm");
+            } else {
+                showToast(result.message || "Erreur", "danger");
+            }
+        } catch (err) {
+            console.error("Erreur lors de la soumission du formulaire :", err);
+            showToast("Une erreur est survenue", "danger");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalContent;
+        }
+    });
+
+    let eventToDelete = { id: null, calendarId: null };
+
+    function openDeleteEventModal(id, calendarId, subject = "") {
+        eventToDelete = { id, calendarId };
+        document.getElementById("deleteEventTitle").innerText = subject || "Événement sans titre";
+        const modal = new bootstrap.Modal(document.getElementById("modalDeleteEvent"));
+        modal.show();
+    }
+
+    document.getElementById("confirmDeleteEventBtn").addEventListener("click", async () => {
+        const { id, calendarId } = eventToDelete;
+
+        const response = await fetch("/api/calendar/delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id, calendar_id: calendarId })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showToast(result.message || "Événement supprimé", "success");
+
+            // Supprime visuellement la carte
+            // const el = document.querySelector(`[data-event-id="${id}"]`);
+            // if (el) el.remove();
+
+            fetchAndDisplayEvents("thisweek");
+            fetchAndDisplayEvents("nextweek");
+            fetchAndDisplayEvents("longterm");
+
+            bootstrap.Modal.getInstance(document.getElementById("modalDeleteEvent")).hide();
+        } else {
+            showToast(result.message || "Erreur lors de la suppression", "danger");
+        }
+    });
+
+    function showToast(message, type = 'success') {
+        const toastContainer = document.getElementById("toastContainer") || createToastContainer();
+        const toast = document.createElement("div");
+        toast.className = `toast align-items-center text-bg-${type} border-0 show`;
+        toast.setAttribute("role", "alert");
+        toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement("div");
+        container.id = "toastContainer";
+        container.className = "toast-container position-fixed top-0 end-0 p-3";
+        container.style.zIndex = "1100";
+        document.body.appendChild(container);
+        return container;
+    }
+
+    function addMinutesToDate(date, minutes) {
+        return new Date(date.getTime() + minutes * 60000);
+    }
+
+    function applyDurationPreset() {
+        if (document.body.dataset.editing === "true") return; // ne rien faire en édition
+
+        const startInput = document.getElementById("start");
+        const endInput = document.getElementById("end");
+        const durationSelect = document.getElementById("durationPreset");
+
+        const startDate = new Date(startInput.value);
+        console.log(startDate);
+        if (!startDate) return;  // Stoppe la fonction si la date n’est pas valide
+
+        if (isNaN(startDate.getTime())) return;
+
+        let minutesToAdd = 60;
+        switch (durationSelect.value) {
+            case "1h": minutesToAdd = 60; break;
+            case "2h": minutesToAdd = 120; break;
+            case "1d": minutesToAdd = 1440; break;
+            case "1w": minutesToAdd = 10080; break;
+            case "0": minutesToAdd = 1; break;
+        }
+
+        const endDate = addMinutesToDate(startDate, minutesToAdd);
+        console.log(endDate);
+        endInput.value = scripts.formatForDatetimeLocal(endDate);
+        console.log(endDate);
+
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const durationSelect = document.getElementById("durationPreset");
+        const startInput = document.getElementById("start");
+
+        if (durationSelect && startInput) {
+            durationSelect.addEventListener("change", applyDurationPreset);
+            startInput.addEventListener("change", applyDurationPreset);
+        }
+    });
+
 </script>

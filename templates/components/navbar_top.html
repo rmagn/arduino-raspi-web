@@ -46,7 +46,8 @@
                                 profil</a>
                         </li>
                         <!-- Links -->
-                        <li><a class="dropdown-item" href="/admin/users"><i class="bi bi-gear fa-fw me-2"></i>Paramètres</a></li>
+                        <li><a class="dropdown-item" href="/admin/users"><i
+                                    class="bi bi-gear fa-fw me-2"></i>Paramètres</a></li>
                         <li class="dropdown-divider"></li>
                         <li><a class="dropdown-item bg-danger-soft-hover" href="/logout"><i
                                     class="bi bi-power fa-fw me-2"></i>Déconnexion</a></li>
@@ -90,6 +91,7 @@
     </nav>
 </header>
 
+{% block scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         fetch("/api/user_photo")
@@ -107,4 +109,38 @@
     });
 </script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const themeButtons = document.querySelectorAll(".btn-modeswitch");
+        const htmlEl = document.documentElement;
+
+        // Récupère le thème depuis le localStorage ou utilise "auto" par défaut
+        let savedTheme = localStorage.getItem("theme") || "auto";
+
+        // Applique le thème
+        applyTheme(savedTheme);
+
+        themeButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const newTheme = button.getAttribute("data-bs-theme-value");
+                applyTheme(newTheme);
+                localStorage.setItem("theme", newTheme);
+
+                // Gère les classes "active"
+                themeButtons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+            });
+        });
+
+        function applyTheme(theme) {
+            if (theme === "auto") {
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                htmlEl.setAttribute("data-bs-theme", prefersDark ? "dark" : "light");
+            } else {
+                htmlEl.setAttribute("data-bs-theme", theme);
+            }
+        }
+    });
+</script>
+{% endblock %}
 <!-- **************** MAIN CONTENT START **************** -->
