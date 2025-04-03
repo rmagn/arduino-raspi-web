@@ -42,7 +42,11 @@
         <button class="btn btn-sm btn-primary" onclick="openCreateEventModal()">
             <i class="bi bi-plus-circle me-1"></i> Ajouter un événement
         </button>
+        <div class="flex-grow-1 mx-2">
+            <input type="text" class="form-control" id="searchEventsInput" placeholder="Rechercher un événement...">
+        </div>
     </div>
+
 
 
     <!-- Card body START -->
@@ -180,44 +184,63 @@
     }
 
     function renderEvents(events, container) {
-        if (!events || events.length === 0) {
+        if (!Array.isArray(events) || events.length === 0) {
             container.innerHTML = "<p>Aucun événement</p>";
             return;
         }
 
+        const colorMap = {
+            rdv_perso: "#b8b8b8",
+            rdv_pro: "#d6d6d6",
+            rdv_enfant: "#0d6efd",
+            sport: "#d0c8b5",
+            rdv: "#e3d8c4",
+            anniversaire: "#ffc107",
+            livraison: "#b7c8a3",
+            conges: "#ffc107"
+        };
+
         const list = events.map(event => {
+            if (!event || typeof event !== "object") return "";
+
+            const category = Array.isArray(event.categories) ? event.categories[0] : "";
+            const color = colorMap[category] || "#dee2e6";
+
             const safeSubject = (event.subject || "").replace(/"/g, "&quot;");
             const safeLocation = (event.location?.displayName || "").replace(/"/g, "&quot;");
 
             return `
-            <div class="mb-3 border rounded p-3 bg-light position-relative" data-event-id="${event.id}">
-                <div class="position-absolute top-0 end-0 m-2">
-                    <button class="btn btn-sm btn-link btn-edit-event" title="Modifier"
-                            data-id="${event.id}"
-                            data-subject="${safeSubject}"
-                            data-location="${safeLocation}"
-                            data-start="${event.start.dateTime}"
-                            data-end="${event.end.dateTime}"
-                            data-calendar="${event.calendarId}"
-                            onclick="openEditEventModalFromButton(this)">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
-                    <button class="btn btn-sm btn-link btn-delete-event ms-1" title="Supprimer"
-                            onclick='openDeleteEventModal("${event.id}", "${event.calendarId}", "${safeSubject}")'>
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-                <div><strong>${event.subject}</strong></div>
-                <div>📅 ${formatDateFr(event.start.dateTime)} |
-                     🕒 ${formatTimeFr(event.start.dateTime)} → ${formatTimeFr(event.end.dateTime)}</div>
-                <div>👤 ${event.organizer?.emailAddress?.name || "?"}</div>
-                <div>📍 ${event.location?.displayName || "Lieu non précisé"}</div>
+        <div class="mb-3 border rounded p-3 bg-light position-relative"
+             data-event-id="${event.id}"
+             style="border-left: 8px solid ${color} !important;">
+            <div class="position-absolute top-0 end-0 m-2">
+                <button class="btn btn-sm btn-link btn-edit-event" title="Modifier"
+                        data-id="${event.id}"
+                        data-subject="${safeSubject}"
+                        data-location="${safeLocation}"
+                        data-start="${event.start?.dateTime || ""}"
+                        data-end="${event.end?.dateTime || ""}"
+                        data-category="${category || ""}"
+                        data-calendar="${event.calendarId || ""}"
+                        onclick="openEditEventModalFromButton(this)">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-sm btn-link btn-delete-event ms-1" title="Supprimer"
+                        onclick='openDeleteEventModal("${event.id}", "${event.calendarId}", "${safeSubject}")'>
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
-            `;
+            <div><strong>${event.subject || "Sans titre"}</strong></div>
+            <div>📅 ${formatDateFr(event.start?.dateTime)} |
+                 🕒 ${formatTimeFr(event.start?.dateTime)} → ${formatTimeFr(event.end?.dateTime)}</div>
+            <div>👤 ${event.organizer?.emailAddress?.name || "?"}</div>
+            <div>📍 ${event.location?.displayName || "Lieu non précisé"}</div>
+        </div>`;
         }).join("");
 
         container.innerHTML = list;
     }
+
 
     async function openEditEventModalFromButton(btn) {
         const dataset = btn.dataset;
@@ -227,7 +250,8 @@
             location: { displayName: dataset.location },
             start: { dateTime: dataset.start },
             end: { dateTime: dataset.end },
-            calendarId: dataset.calendar
+            calendarId: dataset.calendar,
+            categories: [dataset.category]
         };
 
         await openEditEventModal(event);
@@ -240,6 +264,7 @@
         fetch(`/api/calendar_events?periode=${periode}`)
             .then(res => res.json())
             .then(events => {
+                console.log("📦 Événements reçus pour", periode, events);
                 renderEvents(events, container);
                 if (badge) badge.innerText = events.length;
             })
@@ -314,6 +339,8 @@
         form.querySelector("#event_id").value = event.id || "";
         form.querySelector("#subject").value = event.subject || "";
         form.querySelector("#location").value = event.location?.displayName || "";
+        form.querySelector("#category").value = (event.categories && event.categories[0]) || "";
+
 
         const start = new Date(event.start?.dateTime);
         const end = new Date(event.end?.dateTime);
@@ -359,6 +386,7 @@
         try {
             const data = new FormData(form);
             const payload = Object.fromEntries(data.entries());
+            console.log("🔍 Payload soumis :", payload)
 
             const response = await fetch("/api/calendar/update", {
                 method: "POST",
@@ -517,5 +545,58 @@
             startInput.addEventListener("change", applyDurationPreset);
         }
     });
+
+    function filterEvents(searchTerm) {
+        const search = searchTerm.toLowerCase().trim();
+
+        const sections = ["thisweek", "nextweek", "longterm"];
+
+        if (search === "") {
+            // ✅ Réinitialise l’affichage complet
+            sections.forEach(periode => {
+                fetchAndDisplayEvents(periode);
+            });
+            return;
+        }
+
+        sections.forEach(periode => {
+            const container = document.querySelector(`.accordion-body[data-periode="${periode}"]`);
+            const cards = container.querySelectorAll(".position-relative");
+            const badge = document.getElementById(`badge-${periode}`);
+
+            let matchCount = 0;
+
+            cards.forEach(card => {
+                const subject = card.querySelector("strong")?.innerText?.toLowerCase() || "";
+                const location = card.querySelector("div:nth-child(5)")?.innerText?.toLowerCase() || "";
+
+                const match = subject.includes(search) || location.includes(search);
+
+                card.style.display = match ? "" : "none";
+                if (match) matchCount++;
+            });
+
+            // ✅ MAJ du badge
+            badge.innerText = matchCount;
+
+            // ✅ Ouvre ou ferme dynamiquement l'accordéon
+            const collapse = container.closest(".accordion-collapse");
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapse, { toggle: false });
+
+            if (matchCount > 0) {
+                bsCollapse.show();
+            } else {
+                bsCollapse.hide();
+            }
+        });
+    }
+
+
+
+    document.getElementById("searchEventsInput").addEventListener("input", function () {
+        filterEvents(this.value);
+    });
+
+
 
 </script>

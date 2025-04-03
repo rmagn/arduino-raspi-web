@@ -43,7 +43,7 @@ def get_events_between(calendars, startDateTime, endDateTime):
     params = {
         "startDateTime": startDateTime.isoformat()+"Z",
         "endDateTime": endDateTime.isoformat()+"Z",
-        "fields": "subject,organizer,start,end",                 
+        "$select": "subject,organizer,start,end,categories",                 
         "$top": 50,        
     } 
 
@@ -161,6 +161,11 @@ def create_or_update_event(calendar_id, data):
             "displayName": data.get("location", "")
         }
     }
+
+    # Ajout de la catégorie si renseignée
+    category = data.get("category")
+    if category:
+        event_payload["categories"] = [category]
 
     if data.get("id"):  # Édition
         url = f"https://graph.microsoft.com/v1.0/me/calendars/{calendar_id}/events/{data['id']}"
