@@ -8,6 +8,9 @@
 <script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/justgage.js"></script>
 
 
+<script src="/static/scripts/calendar_script.js"></script>
+<script src="/static/scripts/script.js"></script>
+
 
 {% endblock %}
 
@@ -21,8 +24,12 @@
         <!-- end Left nav bar -->
 
         <!-- start Main content -->
+
         <div class="col-md-8 col-lg-6 vstack gap-4">
-            {% include "components/calendar/Events_List.html" %}
+            {% include "pages/calendar/event_modals.html" %}
+            
+            {% include "pages/calendar/Events_List.html" %}
+            
         </div>
         <!-- end Main content -->
         

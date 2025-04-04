@@ -1,6 +1,7 @@
+from dateutil import parser
 from flask import Blueprint, request, jsonify
 from utils.decorators import login_required
-from services.graph_service import get_calendar_shared_calendars, get_events_between, create_or_update_event, delete_event
+from services.graph_service import get_calendar_shared_calendars, get_events_between, create_or_update_event, delete_event, get_events_for_period
 from utils.formater import get_week_bounds
 
 api_calendar = Blueprint("api_calendar", __name__)
@@ -22,6 +23,31 @@ def calendar_events():
     events = get_events_between(calendars, start, end)
 
     return jsonify(events)
+
+@api_calendar.route("/api/calendar_events_range")
+@login_required
+def calendar_events_range():
+    from dateutil import parser
+
+    start_str = request.args.get("start")
+    end_str = request.args.get("end")
+
+    if not start_str or not end_str:
+        return jsonify({"success": False, "message": "start/end manquants"}), 400
+
+    try:
+        # utilisation de parser pour gérer les +01:00, Z, etc.
+        start = parser.parse(start_str)
+        end = parser.parse(end_str)
+    except Exception as e:
+        print(f"❌ Erreur parsing date : {e}")
+        return jsonify({"success": False, "message": "Format de date invalide"}), 400
+
+    calendars = get_calendar_shared_calendars()
+    events = get_events_between(calendars, start, end)
+    return jsonify(events)
+
+
 
 @api_calendar.route("/api/calendar_list")
 @login_required

@@ -75,6 +75,11 @@ def get_events_between(calendars, startDateTime, endDateTime):
 
     return events
     
+def get_events_for_period(start_datetime, end_datetime):
+    calendars = get_calendar_shared_calendars()
+    return get_events_between(calendars, start_datetime, end_datetime)
+
+
 def get_user_photo():
     """
     Récupère la photo de profil de l'utilisateur connecté via Microsoft Graph.
@@ -131,7 +136,6 @@ def get_calendar_list():
     else:
         print(f"❌ Erreur récupération calendriers : {response.status_code}")
         return []
-
 
 def create_or_update_event(calendar_id, data):
     """

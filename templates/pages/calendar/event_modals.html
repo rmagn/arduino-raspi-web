@@ -1,0 +1,38 @@
+<!-- Modal Create/Edit -->
+<div class="modal fade" id="modalEvent" tabindex="-1">
+    <div class="modal-dialog">
+        <form class="modal-content" id="eventForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEventTitle">Créer un événement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% include "pages/calendar/event_form_fields.html" %}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="modalDeleteEvent" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Supprimer un événement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <p>Voulez-vous vraiment supprimer cet événement ?</p>
+                <p><strong id="deleteEventTitle"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteEventBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
