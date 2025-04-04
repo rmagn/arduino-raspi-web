@@ -8,7 +8,7 @@ var meteo = {
           case 5: return '🌧'; // pluie faible
           case 6: return '🌧️'; // pluie modérée
           case 7: return '⛈'; // orage
-          case 1: return '❄️'; // neige
+          case 8: return '❄️'; // neige
           case 9: return '🌫️'; // brouillard
           case 101: return '🌙'; // ciel clair (nuit)
           case 102: return '🌤'; // peu nuageux (nuit)

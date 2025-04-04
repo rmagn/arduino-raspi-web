@@ -43,7 +43,7 @@ def get_events_between(calendars, startDateTime, endDateTime):
     params = {
         "startDateTime": startDateTime.isoformat()+"Z",
         "endDateTime": endDateTime.isoformat()+"Z",
-        "$select": "subject,organizer,start,end,categories",                 
+        "$select": "subject,organizer,start,end,categories,location",                 
         "$top": 50,        
     } 
 

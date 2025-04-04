@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Prévisions météo sur 7 jours{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="row align-items-start g-4">
+
+        <!-- start Left nav bar -->
+        {% include "components/navbar_left.html" %}
+        <!-- end Left nav bar -->
+
+        <!-- start Main content -->
+        <div class="col-md-8 col-lg-6 vstack gap-4">
+            {% for loc_id, loc_nom, _, _ in localites %}
+            <div class="card shadow-sm mb-5" id="localite_card_{{ loc_id }}">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Prévisions météo sur 7 jours | {{ loc_nom }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="accordion_{{ loc_id }}">
+                        <div class="text-muted">Chargement des données météo...</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <!-- end Main content -->
+    </div>
+    <!-- end Main content -->
+</div>
+
+
+
+
+
+<!-- Dépendances -->
+<script src="/static/scripts/meteo.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/fr.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-dayjs@1"></script>
+
+<script>
+    dayjs.extend(dayjs_plugin_utc);
+    dayjs.extend(dayjs_plugin_timezone);
+    dayjs.locale("fr");
+
+    const localites = {{ localites | tojson }};
+    const timezone = "Europe/Paris";
+
+    localites.forEach(loc => {
+        fetch(`/api/previsions/${loc[0]}`)
+            .then(res => res.json())
+            .then(data => {
+                const grouped = {};
+
+                data.forEach(entry => {
+                    const dateLocal = dayjs.utc(entry.date_heure_utc).tz(timezone).format("YYYY-MM-DD");
+                    if (!grouped[dateLocal]) grouped[dateLocal] = [];
+                    grouped[dateLocal].push(entry);
+                });
+
+                const accordion = document.getElementById(`accordion_${loc[0]}`);
+                accordion.innerHTML = ""; // clear spinner
+
+                let index = 0;
+                for (const date in grouped) {
+                    const rows = grouped[date];
+                    const d = dayjs(date);
+                    const headerData = rows[12] || rows[Math.floor(rows.length / 2)];
+
+                    const symbol = meteo.getWeatherIcon(headerData.symbole_24h);
+                    const tMin = headerData.temp_min;
+                    const tMax = headerData.temp_max;
+                    const rafales = headerData.wind_gusts_24h;
+                    const pluie = headerData.pluie_24h;
+
+                    const accordionItem = document.createElement("div");
+                    accordionItem.className = "accordion-item";
+
+                    accordionItem.innerHTML = `
+                        <h2 class="accordion-header" id="heading_${loc[0]}_${index}">
+                            <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${loc[0]}_${index}" aria-expanded="${index === 0}" aria-controls="collapse_${loc[0]}_${index}">
+                                <div class="d-flex flex-wrap align-items-center">
+                                    <strong class="me-3" style="width :160px;">${d.format("dddd D MMMM")}</strong>
+                                    <span class="me-3">${symbol}</span>
+                                    <span class="me-3" style="width :110px;">🌡️ ${tMin}° / ${tMax}°</span>
+                                    <span class="me-3"style="width :100px;">💨 ${rafales} km/h</span>
+                                    <span class="me-3">🌧️ ${pluie} mm</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse_${loc[0]}_${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" aria-labelledby="heading_${loc[0]}_${index}" data-bs-parent="#accordion_${loc[0]}">
+                            <div class="accordion-body p-2">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm text-center mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Heure</th>
+                                                <th>Météo</th>
+                                                <th>🌡️ T°</th>
+                                                <th>💨 Vent (km/h)</th>
+                                                <th>🌧️ Pluie (mm)</th>
+                                                <th>🔆 UV</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${rows.map(r => {
+                        const heure = dayjs.utc(r.date_heure_utc).tz(timezone).format("HH:mm");
+                        return `
+                                                    <tr>
+                                                        <td>${heure}</td>
+                                                        <td>${meteo.getWeatherIcon(r.symbole_1h)}</td>
+                                                        <td>${r.temp}</td>
+                                                        <td>${r.wind_speed}</td>
+                                                        <td>${r.pluie_1h}</td>
+                                                        <td>${r.uv}</td>
+                                                    </tr>
+                                                `;
+                    }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    accordion.appendChild(accordionItem);
+                    index++;
+                }
+
+                // Section "Graphes" hebdo
+                const graphItem = document.createElement("div");
+                graphItem.className = "accordion-item";
+
+                graphItem.innerHTML = `
+                    <h2 class="accordion-header" id="heading_graph_${loc[0]}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_graph_${loc[0]}" aria-expanded="false" aria-controls="collapse_graph_${loc[0]}">
+                            📊 Graphes hebdomadaires
+                        </button>
+                    </h2>
+                    <div id="collapse_graph_${loc[0]}" class="accordion-collapse collapse" aria-labelledby="heading_graph_${loc[0]}" data-bs-parent="#accordion_${loc[0]}">
+                        <div class="accordion-body">
+                            <div class="row gy-4">
+                                <div class="col-md-6">
+                                    <canvas id="chart_temp_${loc[0]}"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <canvas id="chart_pluie_${loc[0]}"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <canvas id="chart_vent_${loc[0]}"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <canvas id="chart_press_${loc[0]}"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                accordion.appendChild(graphItem);
+
+                // Préparation des données pour les graphes
+                const labels = data.map(r => dayjs.utc(r.date_heure_utc).tz(timezone).format("dd HH[h]"));
+                const tempData = data.map(r => r.temp);
+                const pluieData = data.map(r => r.pluie_1h);
+                const ventData = data.map(r => r.wind_speed);
+                const pressionData = data.map(r => r.pression);
+
+                // Température (line)
+                new Chart(document.getElementById(`chart_temp_${loc[0]}`), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '🌡️ Température (°C)',
+                            data: tempData,
+                            tension: 0.2,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { ticks: { maxTicksLimit: 10 } } }
+                    }
+                });
+
+                // Précipitations (barres)
+                new Chart(document.getElementById(`chart_pluie_${loc[0]}`), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '🌧️ Pluie (mm/h)',
+                            data: pluieData,
+                            backgroundColor: '#3fa7d6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { ticks: { maxTicksLimit: 10 } } }
+                    }
+                });
+
+                // Vent (barres)
+                new Chart(document.getElementById(`chart_vent_${loc[0]}`), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '💨 Vent (km/h)',
+                            data: ventData,
+                            backgroundColor: '#84c318'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { ticks: { maxTicksLimit: 10 } } }
+                    }
+                });
+
+                // Pression (line)
+                new Chart(document.getElementById(`chart_press_${loc[0]}`), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '🌀 Pression (hPa)',
+                            data: pressionData,
+                            tension: 0.2,
+                            borderColor: '#a55eea',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { x: { ticks: { maxTicksLimit: 10 } } }
+                    }
+                });
+
+
+            })
+            .catch(err => {
+                const accordion = document.getElementById(`accordion_${loc[0]}`);
+                accordion.innerHTML = `<div class="text-danger">Erreur météo : ${err.message}</div>`;
+            });
+    });
+</script>
+
+{% endblock %}
