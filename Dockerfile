@@ -12,6 +12,8 @@ RUN apt-get update && \
 ENV LANG=fr_FR.UTF-8
 ENV LANGUAGE=fr_FR:fr
 ENV LC_ALL=fr_FR.UTF-8
+ENV PYTHONUNBUFFERED=1
+
 
 # Définir le dossier de travail
 WORKDIR /app
@@ -27,4 +29,5 @@ COPY . .
 EXPOSE 5000
 
 # Commande de démarrage
-CMD ["python", "app.py"]
+CMD ["python", "-u", "app.py"]
+

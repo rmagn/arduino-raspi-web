@@ -39,10 +39,12 @@ def get_week_bounds(offset_weeks=0):
     if offset_weeks == 0:
         start_of_week = today
         # Fin = dimanche de cette semaine (dimanche = 6)
+        print("📅 Récupération des événements de la semaine en cours")
         days_until_sunday = 6 - today.weekday()
         end_of_week = today + timedelta(days=days_until_sunday)
     elif offset_weeks == 1:
         # Semaine suivante, lundi → dimanche
+        print("📅 Récupération des événements de la semaine prochaine")
         start_of_week = today - timedelta(days=today.weekday()) + timedelta(weeks=1)
         end_of_week = start_of_week + timedelta(days=6)
     else:
@@ -62,3 +64,8 @@ def format_date_fr(value):
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace('Z', ''))
     return value.strftime("%d/%m/%Y")
+
+def ensure_seconds(datetime_str):
+    if datetime_str and len(datetime_str) == 16:
+        return datetime_str + ":00"
+    return datetime_str

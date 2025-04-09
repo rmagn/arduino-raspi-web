@@ -1,7 +1,8 @@
 from models.user_model import User
 from models import db
 from flask import session
-from services.auth_service import auth
+from services.auth_manager import get_user
+
 
 def get_all_users():
     return User.query.all()
@@ -56,10 +57,12 @@ def delete_user(email):
 
 def get_logged_user():
     """Retourne l'objet User SQLAlchemy du user connecté, ou None si inconnu en base."""  
-    ms_user = auth.get_user()
+    ms_user = get_user()
+    print("🔑 User connecté :", ms_user)
 
     email = (
         ms_user.get("mail") or
+        ms_user.get("email") or
         ms_user.get("userPrincipalName") or
         ms_user.get("preferred_username")
     )
@@ -67,5 +70,7 @@ def get_logged_user():
     print(f"👤 Email détecté : {email}")
     if email:
         return User.query.get(email)
+    
+    print("❌ AUCUN EMAIL DÉTECTÉ")
     return None
 

@@ -1,7 +1,9 @@
+# /routes/routes_api_calendar.py
+
 from dateutil import parser
 from flask import Blueprint, request, jsonify
 from utils.decorators import login_required
-from services.graph_service import get_calendar_shared_calendars, get_events_between, create_or_update_event, delete_event, get_events_for_period
+from services.calendar_service import get_calendar_shared_calendars, get_events_between, create_or_update_event, delete_event, get_calendar_list
 from utils.formater import get_week_bounds
 
 api_calendar = Blueprint("api_calendar", __name__)
@@ -47,13 +49,9 @@ def calendar_events_range():
     events = get_events_between(calendars, start, end)
     return jsonify(events)
 
-
-
 @api_calendar.route("/api/calendar_list")
 @login_required
 def calendar_list():
-    from services.graph_service import get_calendar_list
-
     calendars = get_calendar_list()
     return jsonify(calendars)
 

@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_session import Session
+
 from routes.routes_logger import logger_bp
 from routes.routes_pages import pages_bp
 from routes.routes_auth import auth_bp
@@ -10,9 +11,13 @@ from routes.routes_api_calendar import api_calendar
 from routes.routes_admin import admin_bp
 
 from config import app_config as config
-from services.auth_service import auth
+from services.auth_manager import get_user, get_user_photo
+from services.oauth_client import oauth
+from services.oauth_register import register_providers
 from services.scheduler import start_scheduler
+
 from utils.formater import todatetime, format_datetime,format_date_fr
+
 from werkzeug.middleware.proxy_fix import ProxyFix
 from models import db
 import logging
@@ -27,19 +32,17 @@ logging.basicConfig(
 
 
 print("🚀 Flask Application Running on Docker!")
-print("version 1.04")
+print("version 1.05")
 
 print(f"Mode : {config.ENV_MODE}, Base SQLite : {config.DATABASE}")
-
-# print("📂 Chemin absolu DB :", os.path.abspath(config.DATABASE))
-# print("🛠 Existe ?          :", os.path.exists(config.DATABASE))
-# print("✍️ Droit d'écriture :", os.access(os.path.dirname(config.DATABASE), os.W_OK))
 
 app = Flask(__name__, template_folder=config.TEMPLATES_DIR, static_folder=config.STATIC_DIR)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.config["TEMPLATES_AUTO_RELOAD"] = config.ENV_MODE == "DEV"
 app.secret_key = config.FLASK_SECRET_KEY
 
+oauth.init_app(app)
+register_providers(app)
 
 app.jinja_env.filters['todatetime'] = todatetime
 app.jinja_env.filters['format_datetime'] = format_datetime
@@ -53,13 +56,12 @@ db.init_app(app)
 # 🔐 context processor pour injecter "current_user" automatiquement dans tous les templates
 @app.context_processor
 def inject_user():
-    return {"current_user": auth.get_user()}
+    return {"current_user": get_user()}
+
 
 @app.context_processor
 def inject_user_avatar():
-    from services.graph_service import get_user_photo
-    user_photo = get_user_photo()
-    return dict(user_photo = user_photo )
+    return {"user_photo": get_user_photo()}
 
 
 # 🔐 Active le stockage serveur de session

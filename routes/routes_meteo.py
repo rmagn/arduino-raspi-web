@@ -6,6 +6,7 @@ meteo_bp = Blueprint("meteo", __name__)
 @meteo_bp.route("/api/previsions/<localite_id>")
 def meteo_previsions(localite_id):
     """Récupère les prévisions météo pour une localité donnée"""
+    
     previsions = get_all_previsions(localite_id)
     if not previsions:
         return jsonify({"status": "error", "message": "Aucune prévision trouvée."}), 404

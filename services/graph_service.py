@@ -1,18 +1,16 @@
+#/services/graph_service.py
+
 import requests
 import base64
-from datetime import datetime 
-from config import app_config as config
-from services.auth_service import auth
-
-
+from services.auth_microsoft import get_microsoft_token
 
 def get_calendar_shared_calendars():
     """
     Récupère la liste des IDs des calendriers accessibles.
     """
-    token = auth.get_token_for_user(config.SCOPE)
+    token = get_microsoft_token()
     if not token or "access_token" not in token:
-        print("❌ Token manquant pour chercher les calendriers")       
+        print("❌ Token Microsoft manquant pour chercher les calendriers")       
 
     headers = {
         "Authorization": f"Bearer {token['access_token']}"
@@ -28,11 +26,10 @@ def get_calendar_shared_calendars():
         return []
 
 def get_events_between(calendars, startDateTime, endDateTime): 
-    # print("📅 Récupération des événements de la semaine")
 
-    token = auth.get_token_for_user(config.SCOPE)
+    token = get_microsoft_token()
     if not token or "access_token" not in token:
-        print("❌ Token manquant pour récupérer les événements")
+        print("❌ Token Microsoft manquant pour récupérer les événements")
         return []
 
     headers = {
@@ -86,9 +83,9 @@ def get_user_photo():
     Retourne une URL base64 à utiliser dans <img src="...">.
     """
     try:
-        token = auth.get_token_for_user(config.SCOPE)
+        token = get_microsoft_token()
         if not token or "access_token" not in token:
-            print("❌ Token non trouvé.")
+            print("❌ Token Microsoft non trouvé.")
             return None
 
         access_token = token['access_token']
@@ -116,9 +113,9 @@ def get_calendar_list():
     """
     Retourne une liste de calendriers avec leur id et nom pour affichage dans un select.
     """
-    token = auth.get_token_for_user(config.SCOPE)
+    token = get_microsoft_token()
     if not token or "access_token" not in token:
-        print("❌ Token manquant pour chercher les calendriers")       
+        print("❌ Token Microsoft manquant pour chercher les calendriers")       
         return []
 
     headers = {
@@ -141,7 +138,7 @@ def create_or_update_event(calendar_id, data):
     """
     Crée ou met à jour un événement dans le calendrier spécifié.
     """
-    token = auth.get_token_for_user(config.SCOPE)
+    token = get_microsoft_token()
     if not token or "access_token" not in token:
         print("❌ Token manquant")
         return {"success": False, "message": "Token manquant"}
@@ -194,7 +191,7 @@ def delete_event(calendar_id, event_id):
     """
     Supprime un événement donné dans le calendrier.
     """
-    token = auth.get_token_for_user(config.SCOPE)
+    token = get_microsoft_token()
     if not token or "access_token" not in token:
         return {"success": False, "message": "Token manquant"}
 

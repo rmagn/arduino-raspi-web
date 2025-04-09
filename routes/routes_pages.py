@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template,session
 from utils.decorators import login_required, role_required
 import services.users_service as users_service
 from services.users_service import get_logged_user
@@ -8,6 +8,7 @@ pages_bp = Blueprint("pages", __name__)
 @pages_bp.route("/")
 @login_required
 def home():
+    #print("🏠 Session sur / :", dict(session))
     return render_template("pages/index.html")
 
 @pages_bp.route("/logs")
