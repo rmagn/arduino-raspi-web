@@ -7,7 +7,7 @@ from services.oauth_client import oauth
 
 def start_google_login():
     session["provider"] = "google"
-    redirect_uri = url_for("auth_bp.google_callback", _external=True)
+    redirect_uri = url_for("auth_bp.google_callback", _external=True, _scheme="https")  # 🔒 Forçage HTTPS
     return oauth.google.authorize_redirect(redirect_uri)
 
 def handle_google_callback():
