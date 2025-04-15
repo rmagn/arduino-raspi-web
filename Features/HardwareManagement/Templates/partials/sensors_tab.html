@@ -1,0 +1,99 @@
+<!-- /FEatures/HardwareManagement/Templates/partials/sensors_tab.html -->
+<!-- Onglet  Capteurs -->
+<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCreateSensor">
+  <i class="bi bi-plus"></i> Ajouter un capteur
+</button>
+
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Arduino</th>
+      <th>Index Capteur</th>
+      <th>Alias</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for alias in aliases %}
+    <tr data-id="{{ alias.id }}">
+      <td>{{ alias.arduino.nom }}</td>
+      <td>Value{{ alias.index_capteur }}</td>
+      <td>{{ alias.alias }}</td>
+      <td>
+        <button class="btn btn-sm btn-link btn-edit" data-bs-toggle="modal" data-bs-target="#modalEdit"
+          data-id="{{ alias.id }}"
+          data-arduino_id="{{ alias.arduino_id }}"
+          data-index_capteur="{{ alias.index_capteur }}"
+          data-alias="{{ alias.alias }}">
+          <i class="bi bi-pencil-square"></i>
+        </button>
+        <button class="btn btn-sm btn-link btn-delete" data-bs-toggle="modal" data-bs-target="#modalDelete"
+          data-id="{{ alias.id }}"
+          data-alias="{{ alias.alias }}">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Modal CREATE Sensor -->
+<div class="modal fade" id="modalCreateSensor" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formCreateSensor">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajouter un capteur</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% include "partials/sensor_alias_form_fields.html" %}
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Créer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal EDIT Sensor -->
+<div class="modal fade" id="modalEdit" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formEditSensor">
+      <div class="modal-header">
+        <h5 class="modal-title">Modifier l'alias</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% include "partials/sensor_alias_form_fields.html" %}
+        <input type="hidden" name="id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Mettre à jour</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal DELETE Sensor Alias -->
+<div class="modal fade" id="modalDelete" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formDeleteSensor">
+      <div class="modal-header">
+        <h5 class="modal-title">Supprimer le capteur</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Confirmer la suppression du capteur :</p>
+        <input type="text" class="form-control-plaintext" id="delete_alias_display" readonly>
+        <input type="hidden" name="id" id="delete_alias">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-danger">Supprimer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>

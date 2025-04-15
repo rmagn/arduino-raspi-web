@@ -1,4 +1,4 @@
-CREATE TABLE nouvelle_table (
+CREATE TABLE logs (
   id INT PRIMARY KEY AUTO_INCREMENT,
   timestamp TIMESTAMP,
   arduino_id INT,
@@ -11,7 +11,8 @@ CREATE TABLE nouvelle_table (
   Value6 INT,
   Value7 INT,
   Value8 INT,
-  Value9 INT
+  Value9 INT,
+  FOREIGN KEY (arduino_id) REFERENCES arduinos(id)
 );
 
 CREATE TABLE meteo_previsions (
@@ -32,7 +33,8 @@ CREATE TABLE meteo_previsions (
     uv REAL,
     lever_soleil TEXT,
     coucher_soleil TEXT,
-    PRIMARY KEY (localite_id, date_heure_utc)
+    PRIMARY KEY (localite_id, date_heure_utc),
+    FOREIGN KEY (localite_id) REFERENCES localites(id)
 );
 
 CREATE TABLE IF NOT EXISTS localites (
@@ -54,3 +56,20 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT INTO users (email, first_name, last_name, birthdate, role) VALUES 
 ('romain_magnan@hotmail.com', 'Romain', 'MAGNAN', '1983-07-01T00:00:00Z','administrateur'),
 ('marie_aubert26@hotmail.com', 'Marie', 'MAGNAN', '1983-09-11T00:00:00Z','utilisateur');
+
+CREATE TABLE IF NOT EXISTS arduinos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom TEXT NOT NULL,
+    description TEXT,
+    adresse_ip TEXT NOT NULL,
+);
+
+CREATE TABLE IF NOT EXISTS sensor_aliases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    arduino_id INTEGER NOT NULL,
+    index_capteur INTEGER NOT NULL CHECK(index_capteur BETWEEN 0 AND 9),
+    alias TEXT NOT NULL,
+    type TEXT NOT NULL,
+    adresse_mac TEXT,
+    FOREIGN KEY (arduino_id) REFERENCES arduinos(id) ON DELETE CASCADE
+);

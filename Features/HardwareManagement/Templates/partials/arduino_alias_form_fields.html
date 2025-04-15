@@ -1,0 +1,27 @@
+<div class="mb-3">
+  <label for="nom" class="form-label">Nom de l’Arduino</label>
+  <input type="text" class="form-control" name="nom" required>
+</div>
+
+<div class="mb-3">
+  <label for="type" class="form-label">Type</label>
+  <select class="form-select" name="type" required>
+    <option value="" selected disabled>-- Sélectionner un type --</option>
+    <option value="arduino_Uno">Arduino Uno</option>
+    <option value="arduino_Mega">Arduino Mega</option>
+    <option value="raspberry_pi">Raspberry Pi</option>
+    <option value="esp8266">ESP8266</option>
+    <option value="esp32">ESP32</option>
+  </select>
+</div>
+
+
+<div class="mb-3">
+  <label for="description" class="form-label">Description</label>
+  <textarea class="form-control" name="description" rows="2"></textarea>
+</div>
+
+<div class="mb-3">
+  <label for="adresse_ip" class="form-label">Adresse IP</label>
+  <input type="text" class="form-control" name="adresse_ip" placeholder="192.168.1.10">
+</div>

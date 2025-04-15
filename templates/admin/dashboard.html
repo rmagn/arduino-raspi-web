@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard admin{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row align-items-start g-4">
+
+        <!-- start Left nav bar -->
+        {% include "components/navbar_left.html" %}
+        <!-- end Left nav bar -->
+
+        <!-- start Main content -->
+        <div class="col-md-8 col-lg-6 vstack gap-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Dashboard admin</h5>
+                    <div class="row">
+                        {% for card in cards %}
+                        <div class="col-md-4">
+                            <div class="card text-center border-0">
+                                <div class="card-body">
+                                    <a href="{{ card.url }}"><i class="bi {{ card.icon }}"
+                                            style="font-size: 115px;"></i></a>
+                                    <h6 class="card-title">{{ card.title }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+            </div>
+            <!-- end Main content -->
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block scripts %} {% endblock %}

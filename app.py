@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_session import Session
+from flask_migrate import Migrate
+
 
 from routes.routes_logger import logger_bp
 from routes.routes_pages import pages_bp
@@ -9,6 +11,7 @@ from routes.routes_meteo import meteo_bp
 from routes.routes_api_user import api_user
 from routes.routes_api_calendar import api_calendar
 from routes.routes_admin import admin_bp
+from Features.HardwareManagement.hardware_routes import alias_bp
 
 from config import app_config as config
 from services.auth_manager import get_user, get_user_photo
@@ -52,6 +55,8 @@ app.jinja_env.filters['format_date_fr'] = format_date_fr
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath(config.DATABASE)}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+migrate = Migrate(app, db)
+
 
 # 🔐 context processor pour injecter "current_user" automatiquement dans tous les templates
 @app.context_processor
@@ -77,10 +82,7 @@ app.register_blueprint(meteo_bp)
 app.register_blueprint(api_user)
 app.register_blueprint(api_calendar)
 app.register_blueprint(admin_bp)
-
-# print("📚 Liste des routes enregistrées :")
-#for rule in app.url_map.iter_rules():
-#   print(rule)
+app.register_blueprint(alias_bp)
 
 # 📌 Lancer le scheduler pour les prévisions météo
 start_scheduler() 

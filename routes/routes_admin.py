@@ -1,9 +1,25 @@
+# /routes/routes_admin.py
+
 from flask import Blueprint, render_template, request, jsonify
 from utils.decorators import login_required, role_required
 import services.users_service as users_service
 
 admin_bp = Blueprint("admin", __name__)
 
+@admin_bp.route("/admin/dashboard")
+@login_required
+@role_required("administrateur")
+def dashboard_Admin():
+    """
+    Renders the admin dashboard management page.
+    """
+    cards = [
+    {"url": "/admin/users", "icon": "bi-people", "title": "Utilisateurs"},
+    {"url": "/HardwareManagement", "icon": "bi-house-gear", "title": "Alias Arduino/Sonde"},
+    {"url": "/admin/notifications", "icon": "bi-bell", "title": "Notifications"},
+    {"url": "/admin/templates", "icon": "bi-envelope-at", "title": "Templates"},
+    ]
+    return render_template("admin/dashboard.html", cards=cards)
 
 @admin_bp.route("/admin/users")
 @login_required

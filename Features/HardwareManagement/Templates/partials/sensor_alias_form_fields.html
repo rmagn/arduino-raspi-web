@@ -1,0 +1,33 @@
+<!-- /Features/HardwareManagement/Templates/sensor_alias_form_fields.html -->
+<div class="mb-3">
+  <label for="arduino_id" class="form-label">Arduino</label>
+  <select class="form-select" name="arduino_id" required>
+    {% for arduino in arduinos %}
+      <option value="{{ arduino.id }}">{{ arduino.nom }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="mb-3">
+  <label for="index_capteur" class="form-label">Index Capteur</label>
+  <select class="form-select" name="index_capteur" required>
+    {% for i in range(0, 10) %}
+      <option value="{{ i }}">Value{{ i }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="mb-3">
+  <label for="alias" class="form-label">Alias</label>
+  <input type="text" class="form-control" name="alias" required>
+</div>
+
+<div class="mb-3">
+  <label for="type" class="form-label">Type de capteur</label>
+  <input type="text" class="form-control" name="type" placeholder="DHT22, TMP36, etc.">
+</div>
+
+<div class="mb-3">
+  <label for="adresse_mac" class="form-label">Adresse MAC</label>
+  <input type="text" class="form-control" name="adresse_mac" placeholder="AA:BB:CC:DD:EE:FF">
+</div>

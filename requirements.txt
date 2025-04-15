@@ -11,3 +11,4 @@ pytz
 APScheduler
 python-dateutil
 Flask-SQLAlchemy
+Flask-Migrate

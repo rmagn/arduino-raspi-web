@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Alias{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    {% include "components/navbar_left.html" %}
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-header">
+          <ul class="nav nav-tabs card-header-tabs" id="aliasTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="arduinos-tab" data-bs-toggle="tab" data-bs-target="#arduinos" type="button" role="tab">Arduinos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="sensors-tab" data-bs-toggle="tab" data-bs-target="#sensors" type="button" role="tab">Capteurs</button>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body tab-content" id="aliasTabsContent">
+          <div class="tab-pane fade show active" id="arduinos" role="tabpanel">
+            {% include "partials/arduinos_tab.html" %}
+          </div>
+          <div class="tab-pane fade" id="sensors" role="tabpanel">
+            {% include "partials/sensors_tab.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('alias_bp.static', filename='sensors.js') }}"></script>
+<script src="{{ url_for('alias_bp.static', filename='arduinos.js') }}"></script>
+{% endblock %}

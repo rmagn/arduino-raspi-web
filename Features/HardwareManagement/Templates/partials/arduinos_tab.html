@@ -1,0 +1,104 @@
+<!-- /FEatures/HardwareManagement/Templates/partials/arduinos_tab.html -->
+
+<!-- Onglet Arduinos -->
+<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCreateArduino">
+  <i class="bi bi-plus"></i> Ajouter un Arduino
+</button>
+
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Nom</th>
+      <th>Type</th>
+      <th>Adresse IP</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="arduino-table-body">
+    {% for arduino in arduinos %}
+    <tr data-id="{{ arduino.id }}">
+      <td>{{ arduino.id }}</td>
+      <td>{{ arduino.nom }}</td>
+      <td>{{ arduino.type }}</td>
+      <td>{{ arduino.adresse_ip }}</td>
+      <td>
+        <button class="btn btn-sm btn-link btn-edit-arduino" data-bs-toggle="modal" data-bs-target="#modalEditArduino"
+          data-id="{{ arduino.id }}" data-nom="{{ arduino.nom }}" data-type="{{ arduino.type }}"
+          data-description="{{ arduino.description }}" data-adresse_ip="{{ arduino.adresse_ip }}">
+          <i class="bi bi-pencil-square"></i>
+        </button>
+        <button class="btn btn-sm btn-link btn-delete-arduino" data-bs-toggle="modal"
+          data-bs-target="#modalDeleteArduino" data-id="{{ arduino.id }}" data-nom="{{ arduino.nom }}">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Toasts -->
+<div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1080; max-width: 400px;">
+  <div id="toastContainer"></div>
+</div>
+
+<!-- Modal CREATE Arduino -->
+<div class="modal fade" id="modalCreateArduino" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formCreateArduino">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajouter un Arduino</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% include "partials/arduino_alias_form_fields.html" %}
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Créer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal EDIT Arduino -->
+<div class="modal fade" id="modalEditArduino" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formEditArduino">
+      <div class="modal-header">
+        <h5 class="modal-title">Modifier l'Arduino</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        {% include "partials/arduino_alias_form_fields.html" %}
+        <input type="hidden" name="id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Mettre à jour</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal DELETE Arduino -->
+<div class="modal fade" id="modalDeleteArduino" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formDeleteArduino">
+      <div class="modal-header">
+        <h5 class="modal-title">Supprimer l'Arduino</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Confirmer la suppression :</p>
+        <input type="text" class="form-control-plaintext" id="delete_arduino_nom" readonly>
+        <input type="hidden" name="id" id="delete_arduino_id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-danger">Supprimer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
