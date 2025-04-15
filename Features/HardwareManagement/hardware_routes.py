@@ -38,6 +38,8 @@ def create_alias():
                 "arduino_id": new_sensor.arduino_id,
                 "arduino_nom": new_sensor.arduino.nom,
                 "index_capteur": new_sensor.index_capteur,
+                "type": new_sensor.type,
+                "adresse_mac": new_sensor.adresse_mac,
                 "alias": new_sensor.alias,
             }
         })
@@ -65,6 +67,8 @@ def edit_alias():
                 "arduino_nom": updated_alias.arduino.nom,
                 "index_capteur": updated_alias.index_capteur,
                 "alias": updated_alias.alias,
+                "type": updated_alias.type,
+                "adresse_mac": updated_alias.adresse_mac,
             }
         })
     else:

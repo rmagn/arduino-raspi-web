@@ -48,7 +48,6 @@ def update_sensor(sensor_id, data):
         db.session.rollback()
         return False
     
-
 def delete_sensor(sensor_id):
     sensor_obj = Sensor.query.get(sensor_id)
     if sensor_obj:
@@ -56,7 +55,6 @@ def delete_sensor(sensor_id):
         db.session.commit()
         return True
     return False
-
 
 def create_arduino(data):
     try:
@@ -73,8 +71,6 @@ def create_arduino(data):
         print("Erreur création Arduino :", e)
         db.session.rollback()
         return None
-
-
 
 def update_arduino(arduino_id, data):
     arduino = Arduino.query.get(arduino_id)
@@ -93,7 +89,6 @@ def update_arduino(arduino_id, data):
         print("Erreur mise à jour Arduino :", e)
         db.session.rollback()
         return None
-
 
 def delete_arduino(arduino_id):
     arduino = Arduino.query.get(arduino_id)
