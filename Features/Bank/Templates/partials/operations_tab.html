@@ -1,0 +1,204 @@
+<div class="row mb-3">
+  <div class="col">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateOperation">
+      <i class="bi bi-plus"></i> Ajouter une opération
+    </button>
+    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalImportOperations">
+      <i class="bi bi-file-earmark-excel"></i> Importer des opérations
+    </button>
+  </div>
+</div>
+
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Label</th>
+      <th>Montant</th>
+      <th>Catégorie</th>
+      <th>Sous-catégorie</th>
+      <th>Fournisseur</th>
+      <th>Personne</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="operations-table-body">
+    {% for op in operations %}
+    <tr data-id="{{ op.id }}">
+      <td>{{ op.date.strftime('%d/%m/%Y') }}</td>
+      <td>{{ op.label }}</td>
+      <td class="{{ 'text-danger' if op.amount < 0 else 'text-success' }}">
+        {{ "%.2f"|format(op.amount) }} €
+      </td>
+      <td>{{ op.categorie.nom if op.categorie else '' }}</td>
+      <td>{{ op.sous_categorie.nom if op.sous_categorie else '' }}</td>
+      <td>{{ op.supplier or '' }}</td>
+      <td>{{ op.person or '' }}</td>
+      <td>
+        <button class="btn btn-sm btn-link btn-edit-operation" data-bs-toggle="modal" data-bs-target="#modalEditOperation"
+          data-id="{{ op.id }}"
+          data-date="{{ op.date.strftime('%Y-%m-%d') }}"
+          data-label="{{ op.label }}"
+          data-amount="{{ op.amount }}"
+          data-categorie_id="{{ op.categorie_id or '' }}"
+          data-sous_categorie_id="{{ op.sous_categorie_id or '' }}"
+          data-supplier="{{ op.supplier or '' }}"
+          data-person="{{ op.person or '' }}">
+          <i class="bi bi-pencil-square"></i>
+        </button>
+        <button class="btn btn-sm btn-link text-danger btn-delete-operation" data-bs-toggle="modal" data-bs-target="#modalDeleteOperation"
+          data-id="{{ op.id }}"
+          data-label="{{ op.label }}">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Toasts -->
+<div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 1080; max-width: 400px;">
+  <div id="toastContainer"></div>
+</div>
+
+<!-- Modal CREATE Operation -->
+<div class="modal fade" id="modalCreateOperation" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" method="POST" id="formCreateOperation">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajouter une opération</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" class="form-control" name="date" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="amount" class="form-label">Montant</label>
+            <input type="number" step="0.01" class="form-control" name="amount" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="label" class="form-label">Label</label>
+          <input type="text" class="form-control" name="label" required>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="categorie_id" class="form-label">Catégorie</label>
+            <select class="form-select" name="categorie_id">
+              <option value="">-- Sélectionner une catégorie --</option>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}">{{ cat.nom }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="sous_categorie_id" class="form-label">Sous-catégorie</label>
+            <select class="form-select" name="sous_categorie_id">
+              <option value="">-- Sélectionner une sous-catégorie --</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="supplier" class="form-label">Fournisseur</label>
+            <input type="text" class="form-control" name="supplier">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="person" class="form-label">Personne</label>
+            <input type="text" class="form-control" name="person">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Créer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal EDIT Operation -->
+<div class="modal fade" id="modalEditOperation" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" method="POST" id="formEditOperation">
+      <div class="modal-header">
+        <h5 class="modal-title">Modifier l'opération</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" class="form-control" name="date" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="amount" class="form-label">Montant</label>
+            <input type="number" step="0.01" class="form-control" name="amount" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="label" class="form-label">Label</label>
+          <input type="text" class="form-control" name="label" required>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="categorie_id" class="form-label">Catégorie</label>
+            <select class="form-select" name="categorie_id">
+              <option value="">-- Sélectionner une catégorie --</option>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}">{{ cat.nom }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="sous_categorie_id" class="form-label">Sous-catégorie</label>
+            <select class="form-select" name="sous_categorie_id">
+              <option value="">-- Sélectionner une sous-catégorie --</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="supplier" class="form-label">Fournisseur</label>
+            <input type="text" class="form-control" name="supplier">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="person" class="form-label">Personne</label>
+            <input type="text" class="form-control" name="person">
+          </div>
+        </div>
+        <input type="hidden" name="id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-warning">Mettre à jour</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal DELETE Operation -->
+<div class="modal fade" id="modalDeleteOperation" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" id="formDeleteOperation">
+      <div class="modal-header">
+        <h5 class="modal-title">Supprimer l'opération</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Confirmer la suppression de l'opération :</p>
+        <input type="text" class="form-control-plaintext" id="delete_operation_label" readonly>
+        <input type="hidden" name="id" id="delete_operation_id">
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-danger">Supprimer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+  

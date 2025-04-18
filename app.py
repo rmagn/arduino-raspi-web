@@ -12,6 +12,8 @@ from routes.routes_api_user import api_user
 from routes.routes_api_calendar import api_calendar
 from routes.routes_admin import admin_bp
 from Features.HardwareManagement.hardware_routes import alias_bp
+from Features.Bank.bank_route import bank_bp
+from Features.Bank.bank_ml import predictor  # Import pour initialiser le prédicteur
 
 from config import app_config as config
 from services.auth_manager import get_user, get_user_photo
@@ -25,14 +27,35 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from models import db
 import logging
 import os
+import sys
 
 # Configuration minimale du logger (console uniquement)
 logging.basicConfig(
-    #level=logging.INFO,  # ou logging.INFO si tu veux moins de détails
-    level=logging.DEBUG,  # ou logging.INFO si tu veux moins de détails
-    format="%(asctime)s [%(levelname)s] %(message)s"
+    level=logging.INFO,  # ou logging.INFO si tu veux moins de détails
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Utiliser sys.stdout pour Docker
+    ]
 )
 
+# Configuration spécifique pour le prédicteur
+bank_logger = logging.getLogger('Features.Bank.bank_ml')
+bank_logger.setLevel(logging.INFO)
+if not bank_logger.handlers:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s'))
+    bank_logger.addHandler(handler)
+bank_logger.propagate = True  # Permettre la propagation des logs
+
+# Configuration pour tous les loggers
+for logger_name in ['Features.Bank.bank_ml', 'Features.Bank.bank_route']:
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.INFO)
+    if not logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s'))
+        logger.addHandler(handler)
+    logger.propagate = True
 
 print("🚀 Flask Application Running on Docker!")
 print("version 1.05")
@@ -83,6 +106,7 @@ app.register_blueprint(api_user)
 app.register_blueprint(api_calendar)
 app.register_blueprint(admin_bp)
 app.register_blueprint(alias_bp)
+app.register_blueprint(bank_bp)
 
 # 📌 Lancer le scheduler pour les prévisions météo
 start_scheduler() 

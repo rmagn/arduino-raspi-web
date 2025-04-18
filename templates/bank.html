@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion Bancaire{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Gestion Bancaire</h1>
+
+    <!-- Formulaire d'ajout d'opération -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Nouvelle Opération</h5>
+        </div>
+        <div class="card-body">
+            <form id="operationForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" class="form-control" id="date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="label">Libellé</label>
+                            <input type="text" class="form-control" id="label" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="amount">Montant</label>
+                            <input type="number" step="0.01" class="form-control" id="amount" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="categorie">Catégorie</label>
+                            <select class="form-control" id="categorie">
+                                <option value="">Sélectionner...</option>
+                                {% for categorie in categories %}
+                                <option value="{{ categorie.id }}">{{ categorie.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="sous_categorie">Sous-catégorie</label>
+                            <select class="form-control" id="sous_categorie" disabled>
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="supplier">Fournisseur</label>
+                            <input type="text" class="form-control" id="supplier">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="person">Personne</label>
+                            <input type="text" class="form-control" id="person">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">Ajouter</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des opérations -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Opérations</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Libellé</th>
+                            <th>Montant</th>
+                            <th>Catégorie</th>
+                            <th>Sous-catégorie</th>
+                            <th>Fournisseur</th>
+                            <th>Personne</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="operationsList">
+                        {% for operation in operations %}
+                        <tr>
+                            <td>{{ operation.date.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ operation.label }}</td>
+                            <td>{{ "%.2f"|format(operation.amount) }} €</td>
+                            <td>{{ operation.categorie.name if operation.categorie else '' }}</td>
+                            <td>{{ operation.sous_categorie.name if operation.sous_categorie else '' }}</td>
+                            <td>{{ operation.supplier or '' }}</td>
+                            <td>{{ operation.person or '' }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary edit-operation" data-id="{{ operation.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-operation" data-id="{{ operation.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'édition -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier l'opération</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="edit_id">
+                    <div class="form-group">
+                        <label for="edit_date">Date</label>
+                        <input type="date" class="form-control" id="edit_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_label">Libellé</label>
+                        <input type="text" class="form-control" id="edit_label" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_amount">Montant</label>
+                        <input type="number" step="0.01" class="form-control" id="edit_amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_categorie">Catégorie</label>
+                        <select class="form-control" id="edit_categorie">
+                            <option value="">Sélectionner...</option>
+                            {% for categorie in categories %}
+                            <option value="{{ categorie.id }}">{{ categorie.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_sous_categorie">Sous-catégorie</label>
+                        <select class="form-control" id="edit_sous_categorie" disabled>
+                            <option value="">Sélectionner...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_supplier">Fournisseur</label>
+                        <input type="text" class="form-control" id="edit_supplier">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_person">Personne</label>
+                        <input type="text" class="form-control" id="edit_person">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveEdit">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Gestion des sous-catégories
+    $('#categorie').change(function() {
+        const categorieId = $(this).val();
+        const sousCategorieSelect = $('#sous_categorie');
+        
+        sousCategorieSelect.prop('disabled', !categorieId);
+        sousCategorieSelect.html('<option value="">Sélectionner...</option>');
+        
+        if (categorieId) {
+            $.get(`/api/categories/${categorieId}/subcategories`, function(subcategories) {
+                subcategories.forEach(function(subcategory) {
+                    sousCategorieSelect.append(
+                        $('<option></option>').val(subcategory.id).text(subcategory.name)
+                    );
+                });
+            });
+        }
+    });
+
+    // Même chose pour le formulaire d'édition
+    $('#edit_categorie').change(function() {
+        const categorieId = $(this).val();
+        const sousCategorieSelect = $('#edit_sous_categorie');
+        
+        sousCategorieSelect.prop('disabled', !categorieId);
+        sousCategorieSelect.html('<option value="">Sélectionner...</option>');
+        
+        if (categorieId) {
+            $.get(`/api/categories/${categorieId}/subcategories`, function(subcategories) {
+                subcategories.forEach(function(subcategory) {
+                    sousCategorieSelect.append(
+                        $('<option></option>').val(subcategory.id).text(subcategory.name)
+                    );
+                });
+            });
+        }
+    });
+
+    // Ajout d'une opération
+    $('#operationForm').submit(function(e) {
+        e.preventDefault();
+        
+        const operation = {
+            date: $('#date').val(),
+            label: $('#label').val(),
+            amount: parseFloat($('#amount').val()),
+            categorie_id: $('#categorie').val() || null,
+            sous_categorie_id: $('#sous_categorie').val() || null,
+            supplier: $('#supplier').val() || null,
+            person: $('#person').val() || null
+        };
+
+        $.post('/api/operations', operation, function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de l\'ajout de l\'opération');
+            }
+        });
+    });
+
+    // Édition d'une opération
+    $('.edit-operation').click(function() {
+        const operationId = $(this).data('id');
+        
+        $.get(`/api/operations/${operationId}`, function(operation) {
+            $('#edit_id').val(operation.id);
+            $('#edit_date').val(operation.date);
+            $('#edit_label').val(operation.label);
+            $('#edit_amount').val(operation.amount);
+            $('#edit_categorie').val(operation.categorie_id);
+            $('#edit_supplier').val(operation.supplier);
+            $('#edit_person').val(operation.person);
+            
+            // Charger les sous-catégories si une catégorie est sélectionnée
+            if (operation.categorie_id) {
+                $('#edit_categorie').trigger('change');
+                setTimeout(() => {
+                    $('#edit_sous_categorie').val(operation.sous_categorie_id);
+                }, 500);
+            }
+            
+            $('#editModal').modal('show');
+        });
+    });
+
+    $('#saveEdit').click(function() {
+        const operation = {
+            id: $('#edit_id').val(),
+            date: $('#edit_date').val(),
+            label: $('#edit_label').val(),
+            amount: parseFloat($('#edit_amount').val()),
+            categorie_id: $('#edit_categorie').val() || null,
+            sous_categorie_id: $('#edit_sous_categorie').val() || null,
+            supplier: $('#edit_supplier').val() || null,
+            person: $('#edit_person').val() || null
+        };
+
+        $.post('/api/operations/edit', operation, function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de la modification de l\'opération');
+            }
+        });
+    });
+
+    // Suppression d'une opération
+    $('.delete-operation').click(function() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette opération ?')) {
+            const operationId = $(this).data('id');
+            
+            $.ajax({
+                url: `/api/operations/${operationId}`,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur lors de la suppression de l\'opération');
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

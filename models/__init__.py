@@ -7,3 +7,4 @@ from .user_model import User
 from .localite_model import Localite
 from .weather_model import MeteoPrevision
 from .sensors_log_model import Log
+from .bank_model import BankOperation, BankCategorie, BankSousCategorie

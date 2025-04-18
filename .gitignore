@@ -28,3 +28,4 @@ venv/*
 #session Flask
 flask_session/*
 DEV_temperature_logs.db
+data/import initial Bank.sql
