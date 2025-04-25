@@ -1,3 +1,4 @@
+// Coucou
 // Fonctions globales pour l'import de fichiers
 let handleFileImport;
 let displayImportPreview;
@@ -347,12 +348,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-        console.log('Données lues:', jsonData);
+        console.log('Données brutes:', jsonData);
         
         // Fonction pour convertir une date Excel en date JavaScript
         const excelDateToJSDate = (excelDate) => {
-          const date = new Date((excelDate - 25569) * 86400 * 1000);
-          return date.toISOString().split('T')[0];
+          console.log('Conversion de la date:', excelDate);
+          
+          // Si c'est un nombre (format Excel)
+          if (typeof excelDate === 'number') {
+            // Les dates Excel sont comptées depuis le 1er janvier 1900
+            // On soustrait 2 car Excel considère 1900 comme une année bissextile
+            const date = new Date((excelDate - 25569) * 86400 * 1000);
+            console.log('Date convertie:', date);
+            return date.toISOString().split('T')[0];
+          }
+          
+          // Si c'est une chaîne de caractères (format DD/MM/YYYY)
+          if (typeof excelDate === 'string') {
+            const [day, month, year] = excelDate.split('/');
+            const date = new Date(year, month - 1, day);
+            console.log('Date convertie:', date);
+            return date.toISOString().split('T')[0];
+          }
+          
+          console.error('Format de date non supporté:', excelDate);
+          throw new Error('Format de date non supporté');
         };
         
         // Fonction pour nettoyer un libellé
@@ -365,23 +385,38 @@ document.addEventListener("DOMContentLoaded", () => {
             .substring(0, 50);           // Prendre les 50 premiers caractères
         };
         
-        // Traiter les données
-        const operations = jsonData.map(row => {
-          // Ignorer les lignes d'en-tête et les lignes vides
-          if (!row['Téléchargement du 18/04/2025'] || typeof row['Téléchargement du 18/04/2025'] === 'string') {
+        // Fonction pour trouver la clé de date
+        const findDateKey = (row) => {
+          return Object.keys(row).find(key => key.startsWith('Téléchargement du'));
+        };
+
+        // Traiter les données en ignorant les lignes d'en-tête (lignes 0 à 4)
+        const operations = jsonData.slice(5).map(row => {
+          // Trouver la clé de date
+          const dateKey = findDateKey(row);
+          console.log('Clé de date trouvée:', dateKey);
+          console.log('Valeur de la date:', row[dateKey]);
+
+          // Ignorer les lignes vides ou les lignes qui n'ont pas de date valide
+          if (!row || typeof row !== 'object' || !dateKey || 
+              typeof row[dateKey] !== 'number') {
+            console.log('Ligne ignorée (vide ou invalide):', row);
             return null;
           }
 
-          const date = excelDateToJSDate(row['Téléchargement du 18/04/2025']);
-          const libelle = row['__EMPTY'] || '';
-          const debit = row['__EMPTY_1'] || 0;
-          const credit = row['__EMPTY_2'] || 0;
+          // Extraire les informations
+          const date = excelDateToJSDate(row[dateKey]);
+          const libelle = row['__EMPTY']?.trim() || '';
+          const debit = parseFloat(row['__EMPTY_1']) || 0;
+          const credit = parseFloat(row['__EMPTY_2']) || 0;
           const montant = debit ? -debit : credit;
+
+          console.log('Opération traitée:', { date, libelle, debit, credit, montant });
 
           return {
             date: date,
             libelle: libelle,
-            clean_libelle: cleanLabel(libelle),  // Ajouter le libellé nettoyé
+            clean_libelle: cleanLabel(libelle),
             montant: montant,
             fournisseur: '',
             personne: ''
@@ -432,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const categories = await categoriesResponse.json();
 
-      // Vérifier les opérations existantes
+      // Vérifier les opérations existantes et obtenir les prédictions
       const response = await fetch('/bank/api/operations/check', {
         method: 'POST',
         headers: {
@@ -447,9 +482,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.json();
       const existingOperations = result.existing_operations || [];
+      const operationsWithPredictions = result.operations || operations;
 
       // Filtrer les opérations existantes
-      const newOperations = operations.filter(op => {
+      const newOperations = operationsWithPredictions.filter(op => {
         return !existingOperations.some(existing => 
           existing.date === op.date && 
           existing.libelle === op.libelle && 
@@ -482,6 +518,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <select class="form-select form-select-sm subcategory-select" data-index="${index}" ${!op.categorie_id ? 'disabled' : ''}>
               <option value="">-- Sélectionner une sous-catégorie --</option>
             </select>
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm supplier-input" data-index="${index}" value="${op.fournisseur || ''}" placeholder="Fournisseur">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm person-input" data-index="${index}" value="${op.personne || ''}" placeholder="Personne">
           </td>
           <td>
             <button type="button" class="btn btn-sm btn-danger" onclick="removePreviewRow(this)">
@@ -560,20 +602,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const cells = tr.children;
       const categorySelect = tr.querySelector('.category-select');
       const subcategorySelect = tr.querySelector('.subcategory-select');
+      const supplierInput = tr.querySelector('.supplier-input');
+      const personInput = tr.querySelector('.person-input');
       
       // Calcul du montant : si débit est présent, c'est un montant négatif, sinon c'est un crédit positif
       const debit = parseFloat(cells[2].textContent) || 0;
       const credit = parseFloat(cells[3].textContent) || 0;
       const montant = debit > 0 ? -debit : credit;
       
+      // Récupérer les valeurs des sélecteurs
+      const categorie_id = categorySelect?.value ? parseInt(categorySelect.value) : null;
+      const sous_categorie_id = subcategorySelect?.value ? parseInt(subcategorySelect.value) : null;
+      const fournisseur = supplierInput?.value || '';
+      const personne = personInput?.value || '';
+      
+      console.log('Opération:', {
+        date: cells[0].textContent,
+        libelle: cells[1].textContent,
+        montant: montant,
+        categorie_id: categorie_id,
+        sous_categorie_id: sous_categorie_id,
+        fournisseur: fournisseur,
+        personne: personne
+      });
+      
       return {
         date: cells[0].textContent,
         libelle: cells[1].textContent,
         montant: montant,
-        categorie_id: categorySelect ? parseInt(categorySelect.value) : null,
-        sous_categorie_id: subcategorySelect ? parseInt(subcategorySelect.value) : null,
-        fournisseur: '',
-        personne: ''
+        categorie_id: categorie_id,
+        sous_categorie_id: sous_categorie_id,
+        fournisseur: fournisseur,
+        personne: personne
       };
     });
 

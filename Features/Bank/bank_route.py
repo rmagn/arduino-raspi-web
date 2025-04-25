@@ -21,7 +21,7 @@ import re
 from Features.Bank.bank_ml import predictor
 import logging
 
-bank_bp = Blueprint("bank", __name__, url_prefix="/bank", template_folder="Templates", static_folder="Static")
+bank_bp = Blueprint("bank", __name__, url_prefix="/bank", template_folder="Templates", static_folder="static")
 
 logger = logging.getLogger(__name__)
 
@@ -285,22 +285,14 @@ def import_operations():
         for op in operations:
             try:
                 print(f"[BANK_ROUTE] Traitement de l'opération: {op['libelle']}")
-                # Prédire la catégorie et sous-catégorie
-                predicted_cat, predicted_sub = predictor.predict(op['libelle'])
-                
-                # Si une prédiction est faite, l'utiliser
-                if predicted_cat:
-                    op['categorie_id'] = predicted_cat
-                    op['sous_categorie_id'] = predicted_sub
-                    print(f"[BANK_ROUTE] Prédiction utilisée pour '{op['libelle']}': catégorie {predicted_cat}, sous-catégorie {predicted_sub}")
-                else:
-                    print(f"[BANK_ROUTE] Aucune prédiction pour '{op['libelle']}'")
                 
                 # Vérification et conversion des données
                 date = datetime.strptime(op['date'], '%Y-%m-%d').date()
                 montant = float(op['montant'])
                 categorie_id = int(op['categorie_id']) if op['categorie_id'] else None
                 sous_categorie_id = int(op['sous_categorie_id']) if op['sous_categorie_id'] else None
+                fournisseur = op.get('fournisseur')
+                personne = op.get('personne')
                 
                 # Vérification de la cohérence des catégories
                 if sous_categorie_id and not categorie_id:
@@ -313,19 +305,21 @@ def import_operations():
                         print(f"[BANK_ROUTE] Opération ignorée: incohérence catégorie/sous-catégorie pour '{op['libelle']}'")
                         continue
                 
+                # Ajouter l'opération avec les catégories sélectionnées par l'utilisateur
                 add_operation(
                     date=date,
                     label=op['libelle'],
                     amount=montant,
                     categorie_id=categorie_id,
                     sous_categorie_id=sous_categorie_id,
-                    supplier=op['fournisseur'],
-                    person=op['personne']
+                    supplier=fournisseur,
+                    person=personne
                 )
                 
-                # Apprendre de la nouvelle opération si elle a été catégorisée
+                # Mettre à jour le modèle avec les catégories sélectionnées par l'utilisateur
                 if categorie_id:
-                    predictor.learn(op['libelle'], categorie_id, sous_categorie_id)
+                    print(f"[BANK_ROUTE] Mise à jour du modèle avec l'opération: {op['libelle']} -> catégorie {categorie_id}, sous-catégorie {sous_categorie_id}, fournisseur {fournisseur}, personne {personne}")
+                    predictor.learn(op['libelle'], categorie_id, sous_categorie_id, fournisseur, personne)
                 
                 imported += 1
                 print(f"[BANK_ROUTE] Opération importée avec succès: {op['libelle']}")
@@ -354,6 +348,17 @@ def check_operations():
         operations = request.get_json()
         existing_operations = []
         
+        # Entraîner le modèle si ce n'est pas déjà fait
+        if not predictor.is_trained:
+            print("[BANK_ROUTE] Entraînement du modèle avant la vérification...")
+            predictor.train()
+            if not predictor.is_trained:
+                print("[BANK_ROUTE] Échec de l'entraînement du modèle")
+                return jsonify({
+                    'success': False,
+                    'error': "Impossible d'entraîner le modèle de prédiction"
+                }), 500
+        
         for op in operations:
             # Nettoyer le libellé pour la comparaison
             clean_label_op = clean_label(op['libelle'])
@@ -381,10 +386,23 @@ def check_operations():
                         'existing_label': e.label
                     })
                     break
+            
+            # Prédire la catégorie, sous-catégorie, fournisseur et personne si l'opération n'existe pas déjà
+            if not any(e['libelle'] == op['libelle'] for e in existing_operations):
+                predicted_cat, predicted_sub, predicted_supplier, predicted_person = predictor.predict(op['libelle'])
+                if predicted_cat:
+                    op['categorie_id'] = predicted_cat
+                    op['sous_categorie_id'] = predicted_sub
+                    if predicted_supplier:
+                        op['fournisseur'] = predicted_supplier
+                    if predicted_person:
+                        op['personne'] = predicted_person
+                    print(f"[BANK_ROUTE] Prédiction pour '{op['libelle']}': catégorie {predicted_cat}, sous-catégorie {predicted_sub}, fournisseur {predicted_supplier}, personne {predicted_person}")
         
         return jsonify({
             'success': True,
-            'existing_operations': existing_operations
+            'existing_operations': existing_operations,
+            'operations': operations  # Renvoyer les opérations avec les prédictions
         })
         
     except Exception as e:

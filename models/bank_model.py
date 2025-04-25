@@ -44,3 +44,17 @@ class BankOperation(db.Model):
 
     categorie = db.relationship("BankCategorie", lazy="joined", foreign_keys=[categorie_id])
     sous_categorie = db.relationship("BankSousCategorie", lazy="joined", foreign_keys=[sous_categorie_id])
+
+
+class BankMLModel(db.Model):
+    __tablename__ = "bank_ml_models"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    vectorizer = db.Column(db.LargeBinary, nullable=False)  # Pour stocker le vectorizer sérialisé
+    train_data = db.Column(db.LargeBinary, nullable=False)  # Pour stocker les données d'entraînement
+    train_labels = db.Column(db.LargeBinary, nullable=False)  # Pour stocker les labels
+    train_sub_labels = db.Column(db.LargeBinary, nullable=False)  # Pour stocker les sous-labels
+    train_suppliers = db.Column(db.LargeBinary, nullable=False)  # Pour stocker les fournisseurs
+    train_persons = db.Column(db.LargeBinary, nullable=False)  # Pour stocker les personnes
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
