@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Installer les dépendances système et les locales
+# Installer toutes les dépendances système
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     sqlite3 \
@@ -8,6 +8,7 @@ RUN apt-get update && \
     gcc \
     g++ \
     gfortran \
+    pkg-config \     # <== Manquait !
     build-essential \
     libffi-dev \
     libopenblas-dev \
@@ -15,8 +16,7 @@ RUN apt-get update && \
     && echo "fr_FR.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=fr_FR.UTF-8 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean
 
 # Définir les variables d'environnement pour les locales
 ENV LANG=fr_FR.UTF-8
@@ -24,7 +24,7 @@ ENV LANGUAGE=fr_FR:fr
 ENV LC_ALL=fr_FR.UTF-8
 ENV PYTHONUNBUFFERED=1
 
-# Définir le dossier de travail
+# Dossier de travail
 WORKDIR /app
 
 # Installer les dépendances Python
