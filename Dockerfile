@@ -8,7 +8,7 @@ RUN apt-get update && \
     gcc \
     g++ \
     gfortran \
-    pkg-config \     # <== Manquait !
+    pkg-config \ 
     build-essential \
     libffi-dev \
     libopenblas-dev \
