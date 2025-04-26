@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    container_name: magnus-home
     ports:
       - "5000:5000"
     volumes:
