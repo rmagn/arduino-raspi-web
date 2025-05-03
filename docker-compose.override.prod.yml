@@ -1,0 +1,10 @@
+services:
+  web:
+    volumes:
+      - /home/Administrateur/arduino-data:/app/data  # Volume SQLite en Prod
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PYTHONUNBUFFERED=0
+      - ENV_MODE=PROD
+      - TZ=Europe/Paris
