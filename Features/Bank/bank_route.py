@@ -12,7 +12,9 @@ from Features.Bank.bank_service import (
     delete_subcategory,
     add_operation,
     update_operation,
-    delete_operation
+    delete_operation,
+    get_last_four_months_summary,
+    get_last_six_months_analysis
 )
 from models.database import db
 from models.bank_model import BankSousCategorie, BankOperation
@@ -56,6 +58,17 @@ def bank_operations():
         subcategories=subcategories
     )
 
+@bank_bp.route('/api/analysis', methods=['GET'])
+@login_required
+def get_analysis_data():
+    category_id = request.args.get('category_id', type=int)
+    last_six_months = get_last_six_months_analysis(category_id)
+    last_four_months = get_last_four_months_summary(category_id)
+
+    return jsonify({
+        "last_six_months": last_six_months,
+        "last_four_months": last_four_months,
+    })
 # Category Routes
 @bank_bp.route("/api/categories", methods=["POST"])
 @login_required

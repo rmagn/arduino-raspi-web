@@ -6,19 +6,85 @@
     <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalImportOperations">
       <i class="bi bi-file-earmark-excel"></i> Importer des opérations
     </button>
+    <button id="clear-filters" class="btn btn-secondary">
+      <i class="bi bi-x-circle"></i> Effacer les filtres
+    </button>
+    <button id="export-operations" class="btn btn-success text-end mb-0">
+      <h5 id="filtered-total" class="text-end mb-0">Total : 0,00 €</h5>
+    </button>
+    
   </div>
 </div>
+
+<!-- Spinner pour l'importation de fichiers -->
+<div id="spinner-import" class="text-center my-3" style="display: none;">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+  <p>Traitement du fichier en cours...</p>
+</div>
+
+<!-- Spinner pour la soumission des opérations -->
+<div id="spinner-submit" class="text-center my-3" style="display: none;">
+  <div class="spinner-border text-success" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+  <p>Enregistrement des opérations en cours...</p>
+</div>
+
+<style>
+  .sort-icon {
+    margin-left: 5px;
+    font-size: 0.8em;
+  }
+
+  /* th.ascending::after {
+    content: ' ▲';
+  }
+
+  th.descending::after {
+    content: ' ▼';
+  } */
+</style>
 
 <table class="table table-striped align-middle">
   <thead>
     <tr>
-      <th>Date</th>
-      <th>Label</th>
-      <th>Montant</th>
-      <th>Catégorie</th>
-      <th>Sous-catégorie</th>
-      <th>Fournisseur</th>
-      <th>Personne</th>
+      <th class="sortable" data-column="0">
+        <span class="sort-label">Date</span>
+        <span class="sort-icon"></span>
+        <input type="text" id="date-range-picker" class="form-control form-control-sm" placeholder="Filtrer par date"  data-column="0">
+      </th>
+      <th class="sortable" data-column="1">
+        <span class="sort-label">Libellé</span>
+        <span class="sort-icon"></span>
+        <input type="text" class="form-control form-control-sm filter-input" placeholder="Filtrer" data-column="1">
+      </th>
+      <th class="sortable" data-column="2">
+        <span class="sort-label">Montant</span>
+        <span class="sort-icon"></span>
+        <input type="text" class="form-control form-control-sm filter-input" placeholder="Filtrer" data-column="2">
+      </th>      
+      <th class="sortable" data-column="3">
+        <span class="sort-label">Catégorie</span>
+        <span class="sort-icon"></span>
+        <input type="text" class="form-control form-control-sm filter-input" placeholder="Filtrer" data-column="3">
+      </th>
+      <th class="sortable" data-column="4">
+        <span class="sort-label">Sous-catégorie</span>
+        <span class="sort-icon"></span>
+        <input type="text" class="form-control form-control-sm filter-input" placeholder="Filtrer" data-column="4">
+      </th>
+      <th class="sortable" data-column="5">
+        <span class="sort-label">Fournisseur</span>
+        <span class="sort-icon"></span>
+        <input type="text" class="form-control form-control-sm filter-input" placeholder="Filtrer" data-column="5">
+      </th>      
+      <th class="sortable" data-column="6">
+        <span class="sort-label">Personne</span>
+        <span class="sort-icon"></span>
+        <input type="text" class="form-control form-control-sm filter-input" placeholder="Filtrer"  data-column="6">
+      </th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -35,20 +101,15 @@
       <td>{{ op.supplier or '' }}</td>
       <td>{{ op.person or '' }}</td>
       <td>
-        <button class="btn btn-sm btn-link btn-edit-operation" data-bs-toggle="modal" data-bs-target="#modalEditOperation"
-          data-id="{{ op.id }}"
-          data-date="{{ op.date.strftime('%Y-%m-%d') }}"
-          data-label="{{ op.label }}"
-          data-amount="{{ op.amount }}"
-          data-categorie_id="{{ op.categorie_id or '' }}"
-          data-sous_categorie_id="{{ op.sous_categorie_id or '' }}"
-          data-supplier="{{ op.supplier or '' }}"
+        <button class="btn btn-sm btn-link btn-edit-operation" data-bs-toggle="modal"
+          data-bs-target="#modalEditOperation" data-id="{{ op.id }}" data-date="{{ op.date.strftime('%Y-%m-%d') }}"
+          data-label="{{ op.label }}" data-amount="{{ op.amount }}" data-categorie_id="{{ op.categorie_id or '' }}"
+          data-sous_categorie_id="{{ op.sous_categorie_id or '' }}" data-supplier="{{ op.supplier or '' }}"
           data-person="{{ op.person or '' }}">
           <i class="bi bi-pencil-square"></i>
         </button>
-        <button class="btn btn-sm btn-link text-danger btn-delete-operation" data-bs-toggle="modal" data-bs-target="#modalDeleteOperation"
-          data-id="{{ op.id }}"
-          data-label="{{ op.label }}">
+        <button class="btn btn-sm btn-link text-danger btn-delete-operation" data-bs-toggle="modal"
+          data-bs-target="#modalDeleteOperation" data-id="{{ op.id }}" data-label="{{ op.label }}">
           <i class="bi bi-trash"></i>
         </button>
       </td>
@@ -201,4 +262,3 @@
     </form>
   </div>
 </div>
-  

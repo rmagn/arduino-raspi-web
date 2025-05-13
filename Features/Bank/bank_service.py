@@ -1,6 +1,8 @@
 from models.bank_model import BankOperation, BankCategorie, BankSousCategorie
 from models.database import db
 from datetime import datetime
+from sqlalchemy import func
+from sqlalchemy.sql.expression import case
 
 def get_all_operations():
     """Récupère toutes les opérations bancaires avec leurs catégories et sous-catégories."""
@@ -104,3 +106,37 @@ def delete_operation(operation_id):
     operation = BankOperation.query.get_or_404(operation_id)
     db.session.delete(operation)
     db.session.commit()
+
+def get_last_six_months_analysis(category_id=None):
+    """Retourne les totaux par mois pour les 6 derniers mois."""
+    month_label = func.strftime('%Y-%m', BankOperation.date).label('month')
+    query = db.session.query(
+        month_label,
+        func.sum(BankOperation.amount).label('total')
+    ).group_by(month_label).order_by(month_label.asc())
+
+    if category_id:
+        query = query.filter(BankOperation.categorie_id == category_id)
+
+    query = query.limit(6)  # Applique la limite après le filtre
+
+    return [{"month": row.month, "total": row.total} for row in query.all()]
+
+def get_last_four_months_summary(category_id=None):
+    """Retourne les débits, crédits et totaux pour les 4 derniers mois."""
+    month_label = func.strftime('%Y-%m', BankOperation.date).label('month')
+    debits_case = case((BankOperation.amount < 0, BankOperation.amount), else_=0)
+    credits_case = case((BankOperation.amount > 0, BankOperation.amount), else_=0)
+
+    query = db.session.query(
+        month_label,
+        func.coalesce(func.sum(debits_case), 0).label('debits'),  # Utilisez coalesce pour remplacer NULL par 0
+        func.coalesce(func.sum(credits_case), 0).label('credits')  # Utilisez coalesce pour remplacer NULL par 0
+    ).group_by(month_label).order_by(month_label.asc())
+
+    if category_id:
+        query = query.filter(BankOperation.categorie_id == category_id)
+
+    query = query.limit(4)
+
+    return [{"month": row.month, "debits": row.debits, "credits": row.credits} for row in query.all()]

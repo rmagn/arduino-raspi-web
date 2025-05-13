@@ -1,15 +1,28 @@
 {% extends "base.html" %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
   <h2 class="mb-3">Gestion des opérations bancaires</h2>
 
   <ul class="nav nav-tabs" id="bankTab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations" type="button" role="tab">Opérations</button>
+      <button class="nav-link active" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations"
+        type="button" role="tab">Opérations</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">Catégories</button>
+      <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button"
+        role="tab">Catégories</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button"
+        role="tab">Analyse</button>
     </li>
   </ul>
 
@@ -20,11 +33,15 @@
     <div class="tab-pane fade" id="categories" role="tabpanel">
       {% include "partials/categories_tab.html" %}
     </div>
+    <div class="tab-pane fade" id="analysis" role="tabpanel">
+      {% include "partials/analysis_tab.html" %}
+    </div>
   </div>
 </div>
 
 <!-- Modal Import Operations -->
-<div class="modal fade" id="modalImportOperations" tabindex="-1" aria-labelledby="modalImportOperationsLabel" aria-hidden="true">
+<div class="modal fade" id="modalImportOperations" tabindex="-1" aria-labelledby="modalImportOperationsLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
